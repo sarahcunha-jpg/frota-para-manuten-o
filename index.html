@@ -123,6 +123,7 @@ tr:hover{background:#f9f9f9}
 <li><a onclick="go('viaturas')" class="ml" data-p="viaturas"><i class="fas fa-car"></i><span>Viaturas</span></a></li>
 <li><a onclick="go('motoristas')" class="ml" data-p="motoristas"><i class="fas fa-id-card"></i><span>Motoristas</span></a></li>
 <li><a onclick="go('agendamento')" class="ml" data-p="agendamento"><i class="fas fa-calendar-alt"></i><span>Agendamento</span></a></li>
+<li><a onclick="go('documentos')" class="ml" data-p="documentos"><i class="fas fa-file-alt"></i><span>Documentação</span></a></li>
 <li><a onclick="go('ordens')" class="ml" data-p="ordens"><i class="fas fa-list"></i><span>Ordens de Serviço</span></a></li>
 <li><a onclick="go('historico')" class="ml" data-p="historico"><i class="fas fa-history"></i><span>Histórico</span></a></li>
 <li><a onclick="go('rastreamento')" class="ml" data-p="rastreamento"><i class="fas fa-map-marker-alt"></i><span>Rastreamento</span></a></li>
@@ -236,6 +237,25 @@ tr:hover{background:#f9f9f9}
 </div>
 <table><thead><tr><th>Viatura</th><th>Motorista</th><th>Data</th><th>Saída</th><th>Retorno</th><th>Destino</th><th>Status</th><th>Ações</th></tr></thead><tbody id="agTable"></tbody></table>
 </div>
+</div>
+
+<div id="documentos" class="page">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+<h1 style="font-size:24px">Documentação das Viaturas</h1>
+<button onclick="modalDocumento()"><i class="fas fa-plus"></i> Novo</button>
+</div>
+<div class="stats">
+<div class="stat ok"><div class="stat-val" id="docReg">0</div><div class="stat-lb">Regulares</div></div>
+<div class="stat warn"><div class="stat-val" id="docVen">0</div><div class="stat-lb">Vencendo em 30 dias</div></div>
+<div class="stat err"><div class="stat-val" id="docVenc">0</div><div class="stat-lb">Vencidos</div></div>
+</div>
+<div class="card">
+<div class="filters">
+<input type="text" placeholder="Viatura, tipo, descrição..." id="dFiltro">
+<select id="dSt"><option value="">Todos</option><option>Regular</option><option>Vencendo</option><option>Vencido</option></select>
+</div>
+</div>
+<div class="card"><table><thead><tr><th>Viatura</th><th>Tipo</th><th>Descrição</th><th>Emissão</th><th>Vencimento</th><th>Status</th><th>Ações</th></tr></thead><tbody id="dTable"></tbody></table></div>
 </div>
 
 <div id="ordens" class="page">
@@ -378,6 +398,18 @@ tr:hover{background:#f9f9f9}
 </form>
 </div></div>
 
+<div id="mDocumento" class="modal"><div class="mc">
+<div class="mh"><h3 id="mDocTitle">Novo Documento</h3><button class="mx" onclick="closeM('mDocumento')">×</button></div>
+<form onsubmit="salvarDocumento(event)">
+<input type="hidden" id="docId">
+<div class="fr"><div class="fg"><label>Viatura *</label><select id="docVit" required></select></div><div class="fg"><label>Tipo *</label><select id="docTipo" required><option>Licenciamento</option><option>Seguro</option><option>Vistoria</option><option>IPVA</option><option>CRLV</option><option>Outro</option></select></div></div>
+<div class="fg"><label>Descrição</label><input type="text" id="docDesc" placeholder="Ex: Licenciamento anual 2026"></div>
+<div class="fr"><div class="fg"><label>Emissão</label><input type="date" id="docEmi"></div><div class="fg"><label>Vencimento *</label><input type="date" id="docVen" required></div></div>
+<div class="fg"><label>Observações</label><textarea id="docObs"></textarea></div>
+<div class="btns"><button type="submit" style="flex:1">Salvar</button><button type="button" class="sec" style="flex:1" onclick="closeM('mDocumento')">Cancelar</button></div>
+</form>
+</div></div>
+
 <div id="mOrdem" class="modal"><div class="mc">
 <div class="mh"><h3 id="mOrdTitle">Nova OS</h3><button class="mx" onclick="closeM('mOrdem')">×</button></div>
 <form onsubmit="salvarOrdem(event)">
@@ -410,8 +442,8 @@ tr:hover{background:#f9f9f9}
 <button class="sec sm" onclick="pergRap('Quais veículos precisam de manutenção esta semana?')">Manutenção</button>
 <button class="sec sm" onclick="pergRap('Quais veículos estão disponíveis hoje?')">Disponíveis</button>
 <button class="sec sm" onclick="pergRap('Quais viaturas estão agendadas hoje?')">Agenda hoje</button>
+<button class="sec sm" onclick="pergRap('Quais documentos estão próximos do vencimento?')">Documentos</button>
 <button class="sec sm" onclick="pergRap('Qual veículo devo priorizar?')">Prioridade</button>
-<button class="sec sm" onclick="pergRap('Como está a disponibilidade da frota?')">Frota</button>
 </div></div>
 <form onsubmit="enviarPerg(event)" style="display:flex;gap:6px;flex-wrap:wrap">
 <input type="text" id="iaInput" placeholder="Digite sua pergunta..." style="flex:1;min-width:150px;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:14px;min-height:42px" autocomplete="off">
@@ -422,11 +454,11 @@ tr:hover{background:#f9f9f9}
 <div id="toasts"></div>
 
 <script>
-const DBK='frotapm_db',DBV=4;
-const EMPTY={version:DBV,viaturas:[],ordensServico:[],motoristas:[],agendamentos:[]};
+const DBK='frotapm_db',DBV=5;
+const EMPTY={version:DBV,viaturas:[],ordensServico:[],motoristas:[],agendamentos:[],documentos:[]};
 function mig(d){
   if(!d||typeof d!=='object')return JSON.parse(JSON.stringify(EMPTY));
-  ['viaturas','ordensServico','motoristas','agendamentos'].forEach(k=>{if(!Array.isArray(d[k]))d[k]=[];});
+  ['viaturas','ordensServico','motoristas','agendamentos','documentos'].forEach(k=>{if(!Array.isArray(d[k]))d[k]=[];});
   d.viaturas.forEach(v=>{if(v.status==='Em operação')v.status='Operacional';if(!v.tipo)v.tipo='Viatura Operacional';if(typeof v.latitude==='undefined')v.latitude=null;if(typeof v.longitude==='undefined')v.longitude=null;if(typeof v.endereco==='undefined')v.endereco='';if(typeof v.enderecoFormatado==='undefined')v.enderecoFormatado='';});
   d.ordensServico.forEach(o=>{if(!o.tipo)o.tipo='Corretiva';if(!o.status)o.status='Concluída';if(o.status==='Finalizada')o.status='Concluída';if(!Array.isArray(o.pecas))o.pecas=[];if(!o.quilometragem)o.quilometragem=0;});
   d.version=DBV;return d;
@@ -440,12 +472,13 @@ const S={
   save(c,v){const d=this.get();if(!v.id){v.id=this.gid(d[c]);d[c].push(v);}else{const i=d[c].findIndex(x=>x.id===v.id);if(i>=0)d[c][i]={...d[c][i],...v};}this.write(d);return v;},
   del(c,id){const d=this.get();d[c]=d[c].filter(x=>x.id!==id);this.write(d);},
   viats(){return this.get().viaturas;},viat(id){return this.viats().find(v=>v.id===id);},savV(v){return this.save('viaturas',v);},
-  delV(id){const d=this.get();d.viaturas=d.viaturas.filter(v=>v.id!==id);d.ordensServico=d.ordensServico.filter(o=>o.viaturaId!==id);d.agendamentos=d.agendamentos.filter(a=>a.viaturaId!==id);this.write(d);},
+  delV(id){const d=this.get();d.viaturas=d.viaturas.filter(v=>v.id!==id);d.ordensServico=d.ordensServico.filter(o=>o.viaturaId!==id);d.agendamentos=d.agendamentos.filter(a=>a.viaturaId!==id);d.documentos=d.documentos.filter(x=>x.viaturaId!==id);this.write(d);},
   ords(){return this.get().ordensServico;},ord(id){return this.ords().find(o=>o.id===id);},
   savO(o){const d=this.get();if(!o.id){o.id=this.gid(d.ordensServico);o.numero='OS-'+String(o.id).padStart(3,'0');d.ordensServico.push(o);}else{const i=d.ordensServico.findIndex(x=>x.id===o.id);if(i>=0)d.ordensServico[i]={...d.ordensServico[i],...o};}this.write(d);return o;},
   delO(id){this.del('ordensServico',id);},
   mots(){return this.get().motoristas;},mot(id){return this.mots().find(m=>m.id===id);},savM(m){return this.save('motoristas',m);},delM(id){this.del('motoristas',id);},
-  ags(){return this.get().agendamentos;},ag(id){return this.ags().find(a=>a.id===id);},savA(a){return this.save('agendamentos',a);},delA(id){this.del('agendamentos',id);}
+  ags(){return this.get().agendamentos;},ag(id){return this.ags().find(a=>a.id===id);},savA(a){return this.save('agendamentos',a);},delA(id){this.del('agendamentos',id);},
+  docs(){return this.get().documentos;},doc(id){return this.docs().find(d=>d.id===id);},savD(d){return this.save('documentos',d);},delD(id){this.del('documentos',id);}
 };
 function esc(s){if(s==null)return'';return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 function moeda(v){return'R$ '+(Number(v)||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
@@ -504,6 +537,7 @@ function go(p){
   if(p==='viaturas')renderVit();
   if(p==='motoristas')renderMot();
   if(p==='agendamento')renderAg();
+  if(p==='documentos')renderDoc();
   if(p==='ordens')renderOrd();
   if(p==='historico')renderHist();
   if(p==='indicadores')renderInd();
@@ -574,10 +608,11 @@ function delV(id){
   const v=S.viat(id);if(!v)return;
   const o=S.ords().filter(x=>x.viaturaId===id);
   const a=S.ags().filter(x=>x.viaturaId===id);
-  let extra='';if(o.length||a.length)extra='\n\nTambém remove '+o.length+' OS e '+a.length+' agendamento(s).';
+  const d=S.docs().filter(x=>x.viaturaId===id);
+  let extra='';if(o.length||a.length||d.length)extra='\n\nTambém remove '+o.length+' OS, '+a.length+' agend., '+d.length+' doc.';
   confirmar('Excluir '+v.numero+' ('+v.placa+')?'+extra,()=>{
     S.delV(id);toast('Viatura excluída!');
-    renderVit();renderDash();renderOrd();renderHist();renderAg();atualizaPrev();
+    renderVit();renderDash();renderOrd();renderHist();renderAg();renderDoc();atualizaPrev();
   });
 }
 function renderVit(){
@@ -776,6 +811,75 @@ function renderAg(){
     return'<tr><td><strong>'+esc(a.viaturaNumero)+'</strong><br><small style="color:#666">'+esc(a.viaturaPlaca)+'</small></td><td>'+esc(a.motoristaNome)+'</td><td>'+dt(a.data)+'</td><td>'+esc(a.saida)+'</td><td>'+esc(a.retorno)+'</td><td>'+esc(a.destino)+'</td><td>'+statusBadge(a.status)+'</td><td><div style="display:flex;gap:3px;flex-wrap:wrap">'+ac.join('')+'</div></td></tr>';
   }).join('');
 }
+function stDoc(d){
+  if(!d.vencimento)return{label:'Sem info',cor:'info'};
+  const dias=diasAte(d.vencimento);
+  if(dias<0)return{label:'Vencido há '+Math.abs(dias)+'d',cor:'danger'};
+  if(dias<=30)return{label:'Vence em '+dias+'d',cor:'warning'};
+  return{label:'Regular',cor:'success'};
+}
+function modalDocumento(id){
+  const f=document.querySelector('#mDocumento form');f.reset();
+  document.getElementById('docId').value='';
+  document.getElementById('mDocTitle').textContent='Novo Documento';
+  const vs=S.viats();
+  if(!vs.length){toast('Cadastre viatura primeiro','warning');return;}
+  document.getElementById('docVit').innerHTML='<option value="">Selecione</option>'+vs.map(v=>'<option value="'+v.id+'">'+esc(v.numero)+' - '+esc(v.placa)+'</option>').join('');
+  if(id){
+    const d=S.doc(id);if(!d)return;
+    document.getElementById('mDocTitle').textContent='Editar Documento';
+    document.getElementById('docId').value=d.id;
+    document.getElementById('docVit').value=d.viaturaId;
+    document.getElementById('docTipo').value=d.tipo||'Licenciamento';
+    document.getElementById('docDesc').value=d.descricao||'';
+    document.getElementById('docEmi').value=d.emissao||'';
+    document.getElementById('docVen').value=d.vencimento||'';
+    document.getElementById('docObs').value=d.observacoes||'';
+  }
+  openM('mDocumento');
+}
+function salvarDocumento(e){
+  e.preventDefault();
+  const id=document.getElementById('docId').value;
+  const v=parseInt(document.getElementById('docVit').value);
+  const ven=document.getElementById('docVen').value;
+  if(!v||!ven){toast('Viatura e vencimento obrigatórios','error');return;}
+  const vv=S.viat(v);
+  const d={id:id?Number(id):undefined,viaturaId:v,viaturaNumero:vv?.numero||'',viaturaPlaca:vv?.placa||'',tipo:document.getElementById('docTipo').value,descricao:document.getElementById('docDesc').value.trim(),emissao:document.getElementById('docEmi').value||'',vencimento:ven,observacoes:document.getElementById('docObs').value.trim()};
+  if(!d.id)delete d.id;
+  S.savD(d);
+  closeM('mDocumento');
+  toast(id?'Documento atualizado!':'Documento cadastrado!');
+  renderDoc();renderDash();atualizaPrev();
+}
+function delD(id){
+  const d=S.doc(id);if(!d)return;
+  confirmar('Excluir "'+d.tipo+'" de '+d.viaturaNumero+'?',()=>{
+    S.delD(id);toast('Documento excluído!');
+    renderDoc();renderDash();atualizaPrev();
+  });
+}
+function renderDoc(){
+  const docs=S.docs();
+  const st={r:0,v:0,e:0};
+  docs.forEach(d=>{const s=stDoc(d);if(s.cor==='success')st.r++;else if(s.cor==='warning')st.v++;else if(s.cor==='danger')st.e++;});
+  const e1=document.getElementById('docReg');if(e1)e1.textContent=st.r;
+  const e2=document.getElementById('docVen');if(e2)e2.textContent=st.v;
+  const e3=document.getElementById('docVenc');if(e3)e3.textContent=st.e;
+  const tb=document.getElementById('dTable');if(!tb)return;
+  const f=(document.getElementById('dFiltro')?.value||'').toLowerCase();
+  const s=document.getElementById('dSt')?.value||'';
+  const l=docs.filter(d=>{
+    const stt=stDoc(d);
+    if(s==='Regular'&&stt.cor!=='success')return false;
+    if(s==='Vencendo'&&stt.cor!=='warning')return false;
+    if(s==='Vencido'&&stt.cor!=='danger')return false;
+    if(f){const t=(d.viaturaNumero+' '+d.tipo+' '+(d.descricao||'')).toLowerCase();if(!t.includes(f))return false;}
+    return true;
+  }).sort((a,b)=>new Date(a.vencimento)-new Date(b.vencimento));
+  if(!l.length){tb.innerHTML='<tr><td colspan="7"><div class="empty"><i class="fas fa-file-alt"></i>Nenhum documento</div></td></tr>';return;}
+  tb.innerHTML=l.map(d=>{const stt=stDoc(d);return'<tr><td><strong>'+esc(d.viaturaNumero)+'</strong></td><td>'+esc(d.tipo)+'</td><td>'+esc(d.descricao||'-')+'</td><td>'+dt(d.emissao)+'</td><td>'+dt(d.vencimento)+'</td><td><span class="badge '+stt.cor+'">'+stt.label+'</span></td><td><button class="sec sm" onclick="modalDocumento('+d.id+')">Editar</button> <button class="danger sm" onclick="delD('+d.id+')">Excluir</button></td></tr>';}).join('');
+}
 function modalOrdem(id){
   const f=document.querySelector('#mOrdem form');f.reset();
   document.getElementById('oId').value='';
@@ -921,6 +1025,11 @@ function renderAlertas(){
     const c=stCnh(m);
     if(c.cor==='danger')al.push({t:'danger',msg:'CNH de '+m.nome+' vencida.'});
     else if(c.cor==='warning')al.push({t:'warning',msg:'CNH de '+m.nome+' vence em '+diasAte(m.cnhValidade)+' dia(s).'});
+  });
+  db.documentos.forEach(d=>{
+    const c=stDoc(d);
+    if(c.cor==='danger')al.push({t:'danger',msg:d.tipo+' de '+d.viaturaNumero+' vencido.'});
+    else if(c.cor==='warning')al.push({t:'warning',msg:d.tipo+' de '+d.viaturaNumero+' vence em '+diasAte(d.vencimento)+' dia(s).'});
   });
   db.agendamentos.forEach(a=>{
     if(a.data===hoje()&&a.status!=='Cancelado')al.push({t:'info',msg:a.viaturaNumero+' agendada hoje ('+a.saida+' → '+a.destino+').'});
@@ -1083,19 +1192,21 @@ function iaMsg(au,tx){const c=document.getElementById('iaChat');if(!c)return;con
 function toggleIA(){
   const m=document.getElementById('iaModal');
   if(m.classList.contains('on'))closeM('iaModal');
-  else{openM('iaModal');const c=document.getElementById('iaChat');if(!c.children.length)iaMsg('ia','Olá! Sou a Frota IA. Posso responder sobre viaturas, manutenções, motoristas, agendamentos, custos e riscos. Use uma sugestão ou digite.');setTimeout(()=>document.getElementById('iaInput')?.focus(),200);}
+  else{openM('iaModal');const c=document.getElementById('iaChat');if(!c.children.length)iaMsg('ia','Olá! Sou a Frota IA. Posso responder sobre viaturas, manutenções, motoristas, agendamentos, documentos, custos e riscos. Use uma sugestão ou digite.');setTimeout(()=>document.getElementById('iaInput')?.focus(),200);}
 }
 function pergRap(t){const i=document.getElementById('iaInput');if(!i)return;i.value=t;enviarPerg({preventDefault:()=>{}});}
 function enviarPerg(e){if(e&&e.preventDefault)e.preventDefault();const i=document.getElementById('iaInput');if(!i)return;const p=i.value.trim();if(!p)return;iaMsg('user',p);i.value='';setTimeout(()=>iaMsg('ia',responder(p)),200);}
 function responder(p){
   const q=(p||'').toLowerCase().trim();
   const db=S.get();
-  const vs=db.viaturas||[],os=db.ordensServico||[],ms=db.motoristas||[],as=db.agendamentos||[];
+  const vs=db.viaturas||[],os=db.ordensServico||[],ms=db.motoristas||[],as=db.agendamentos||[],ds=db.documentos||[];
   if(!vs.length)return'Sem dados suficientes. Cadastre viaturas e ordens primeiro.';
   const an=viatsRisco();
   if(/precisam?.*manuten|manuten.*esta semana/i.test(q)){const e=an.filter(x=>x.sc>=25);if(!e.length)return'Nenhuma precisa de manutenção.';return e.length+' veículo(s) precisam de atenção:\n\n'+e.slice(0,8).map(x=>'• '+x.viatura.numero+' — '+x.n+' ('+x.sc+'/100)\n   '+(x.mt[0]||'')).join('\n\n');}
   if(/qual.*retirar|qual.*priorizar|prioridade/i.test(q)){const t=an[0];if(!t||t.sc<25)return'Nada a priorizar.';return t.viatura.numero+' deve ser priorizada.\n\nRisco: '+t.sc+'/100 ('+t.n+')\n\nMotivos:\n'+t.mt.map(m=>'• '+m).join('\n')+'\n\nRecomendação: '+t.recom+'.';}
   if(/risco alto|risco cr[íi]tico/i.test(q)){const e=an.filter(x=>x.n==='Alto'||x.n==='Crítico');if(!e.length)return'Nenhuma em risco alto/crítico.';return e.length+' viatura(s):\n\n'+e.map(x=>'• '+x.viatura.numero+' — '+x.n+' ('+x.sc+'/100)').join('\n');}
+  if(/documento|vencimento.*doc|doc.*venc/i.test(q)){const v=ds.filter(d=>{const s=stDoc(d);return s.cor==='warning'||s.cor==='danger';});if(!v.length)return'Nenhum documento em atenção.';return v.length+' documento(s):\n\n'+v.map(d=>'• '+d.viaturaNumero+' — '+d.tipo+' ('+stDoc(d).label+')').join('\n');}
+  if(/cnh|motorista.*venc|venc.*cnh/i.test(q)){const v=ms.filter(m=>{const s=stCnh(m);return s.cor==='warning'||s.cor==='danger';});if(!v.length)return'Nenhuma CNH em atenção.';return v.length+' CNH(s):\n\n'+v.map(m=>'• '+m.nome+' — '+stCnh(m).label).join('\n');}
   if(/disponibilidade|sa[úu]de|como est[áa].*frota/i.test(q)){const k=kpis(db),s=saudeFrota();return'Disponibilidade: '+k.disp.toFixed(1)+'%\n'+(s?('Saúde: '+s.pct+'% ('+s.lb+')\n'):'')+'\n• Total: '+k.tot+'\n• Operacionais: '+k.op+'\n• Manutenção: '+k.man+'\n• Indisponíveis: '+k.ind;}
   if(/indispon|paradas|parados/i.test(q)){const i=vs.filter(v=>v.status==='Indisponível'||v.status==='Em Manutenção');if(!i.length)return'Nenhuma viatura indisponível.';return i.length+' viatura(s):\n\n'+i.map(v=>'• '+v.numero+' — '+v.status).join('\n');}
   if(/dispon[íi]ve(i)?s?( hoje)?/i.test(q)){const dispon=vs.filter(v=>v.status==='Operacional');if(!dispon.length)return'Nenhuma viatura operacional.';return dispon.length+' viatura(s) operacional(is):\n\n'+dispon.slice(0,15).map(v=>'• '+v.numero+' ('+v.placa+')').join('\n');}
@@ -1110,7 +1221,7 @@ function responder(p){
   if(/quantas.*manuten|total.*manuten|quantas.*os/i.test(q)){const conc=os.filter(o=>o.status==='Concluída').length;const ab=os.filter(o=>['Agendada','Em andamento'].includes(o.status)).length;return'Total de ordens: '+os.length+'\n• Concluídas: '+conc+'\n• Abertas: '+ab;}
   if(/custo total|gasto total|quanto.*gast/i.test(q)){const k=kpis(db);return'Custo total: '+moeda(k.custo)+'.';}
   if(/cr[íi]tic|top.*risco|mais.*risco/i.test(q)){const top=an.slice(0,5);return'Mais críticas:\n\n'+top.map((x,i)=>(i+1)+'. '+x.viatura.numero+' — '+x.n+' ('+x.sc+'/100)').join('\n');}
-  if(/ajuda|help|pode|comandos/i.test(q))return'Posso responder:\n\n• Quais veículos precisam de manutenção esta semana?\n• Qual veículo devo priorizar?\n• Quais veículos estão em risco alto?\n• Quais veículos estão com manutenção atrasada?\n• Quais viaturas estão agendadas hoje?\n• Quais veículos estão disponíveis hoje?\n• Qual veículo tem mais falhas?\n• Qual veículo gera maior custo?\n• Como está a disponibilidade da frota?\n• Quantos motoristas estão cadastrados?';
+  if(/ajuda|help|pode|comandos/i.test(q))return'Posso responder:\n\n• Quais veículos precisam de manutenção esta semana?\n• Qual veículo devo priorizar?\n• Quais veículos estão em risco alto?\n• Quais veículos estão com manutenção atrasada?\n• Quais viaturas estão agendadas hoje?\n• Quais veículos estão disponíveis hoje?\n• Quais documentos estão próximos do vencimento?\n• Quais CNHs estão próximas do vencimento?\n• Qual veículo tem mais falhas?\n• Qual veículo gera maior custo?\n• Como está a disponibilidade da frota?\n• Quantos motoristas estão cadastrados?';
   return'Não entendi. Digite "ajuda" para ver o que posso responder.';
 }
 document.addEventListener('DOMContentLoaded',()=>{
@@ -1118,6 +1229,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   ['vFiltro','vSt','vUn'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('input',renderVit);});
   ['mFiltro','mSt'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('input',renderMot);});
   ['agFiltro','agSt'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('input',renderAg);});
+  ['dFiltro','dSt'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('input',renderDoc);});
   ['oFiltro','oSt','oTp'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('input',renderOrd);});
   ['hFiltro','hVit','hTp','hResp','hIni','hFim'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('input',renderHist);});
   const pf=document.getElementById('pvFiltro');if(pf)pf.addEventListener('change',renderPreve);
@@ -1132,6 +1244,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(ativo==='viaturas')renderVit();
     if(ativo==='motoristas')renderMot();
     if(ativo==='agendamento')renderAg();
+    if(ativo==='documentos')renderDoc();
     if(ativo==='ordens')renderOrd();
     if(ativo==='historico')renderHist();
     if(ativo==='indicadores')renderInd();
@@ -1139,7 +1252,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(ativo==='rastreamento'){renderMapMarks();renderMapList();}
     atualizaPrev();
   });
-  try{renderDash();renderVit();renderMot();renderAg();renderOrd();renderHist();renderInd();renderPrevDash();}catch(e){console.error('Render:',e);}
+  try{renderDash();renderVit();renderMot();renderAg();renderDoc();renderOrd();renderHist();renderInd();renderPrevDash();}catch(e){console.error('Render:',e);}
 });
 </script>
 </body>
