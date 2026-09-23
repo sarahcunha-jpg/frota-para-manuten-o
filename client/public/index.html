@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Frota PM - Blumenau</title>
+
+  <!-- CSS de bibliotecas externas -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header>
+  <h1>🚔 Frota PM - Blumenau</h1>
+</header>
+
+<!-- ============ DASHBOARD ============ -->
+<section class="dashboard">
+  <h2>Dashboard</h2>
+  <div class="cards">
+    <div class="card"><div class="card-valor">0</div><div>Total de Viaturas</div></div>
+    <div class="card"><div class="card-valor">0</div><div>Em Operação</div></div>
+    <div class="card"><div class="card-valor">0</div><div>Em Manutenção</div></div>
+    <div class="card"><div class="card-valor">0</div><div>Indisponível</div></div>
+  </div>
+
+  <div class="graficos">
+    <div class="grafico-box">
+      <h3>Manutenções por Mês</h3>
+      <canvas id="graficoManutencoes"></canvas>
+    </div>
+    <div class="grafico-box">
+      <h3>Status das Viaturas</h3>
+      <canvas id="graficoStatus"></canvas>
+    </div>
+  </div>
+
+  <div class="alertas-box">
+    <h3>🚨 Alertas Importantes</h3>
+    <div id="listaAlertas"></div>
+  </div>
+</section>
+
+<!-- ============ CADASTRO DE VIATURAS ============ -->
+<section>
+  <h2>Cadastro de Viaturas</h2>
+  <input type="text" id="buscaViatura" placeholder="🔍 Buscar viatura..." oninput="filtrarViaturas()" />
+  <button onclick="exportarExcel()" style="margin-left:10px; padding:6px 12px; background:#22c55e; color:#fff; border:none; border-radius:4px; cursor:pointer;">
+    📊 Exportar Excel
+  </button>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Número</th><th>Placa</th><th>Modelo</th><th>Ano</th>
+        <th>KM</th><th>Unidade</th><th>Status</th><th>Ações</th>
+      </tr>
+    </thead>
+    <tbody id="tbodyViaturas"></tbody>
+  </table>
+</section>
+
+<!-- ============ ORDENS DE SERVIÇO ============ -->
+<section>
+  <h2>Ordens de Serviço</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Número</th><th>Viatura</th><th>Data</th><th>Responsável</th>
+        <th>Problema</th><th>Custo</th><th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="tbodyOS"></tbody>
+  </table>
+</section>
+
+<!-- ============ RASTREAMENTO ============ -->
+<section>
+  <h2>Rastreamento em Tempo Real</h2>
+  <div id="mapa" style="height: 450px; border-radius: 8px;"></div>
+</section>
+
+<!-- ============ BIBLIOTECAS JS (CDN) ============ -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<!-- Seus arquivos -->
+<script src="data.js"></script>
+<script src="script.js"></script>
+
+</body>
+</html>
