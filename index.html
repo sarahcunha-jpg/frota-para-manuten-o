@@ -140,7 +140,6 @@ tr:hover{background:#f9f9f9}
 <div class="navbar-icons"><i class="fas fa-bell"></i><i class="fas fa-cog"></i></div>
 </nav>
 <div class="content">
-
 <div id="dashboard" class="page on">
 <h1 style="font-size:24px;margin-bottom:16px">Dashboard</h1>
 <div class="stats">
@@ -176,7 +175,6 @@ tr:hover{background:#f9f9f9}
 <div id="alertasBox"></div>
 </div>
 </div>
-
 <div id="viaturas" class="page">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
 <h1 style="font-size:24px">Cadastro de Viaturas</h1>
@@ -191,7 +189,6 @@ tr:hover{background:#f9f9f9}
 </div>
 <div class="card"><table><thead><tr><th>Número</th><th>Placa</th><th>Modelo</th><th>Tipo</th><th>Ano</th><th>KM</th><th>Unidade</th><th>Status</th><th>Ações</th></tr></thead><tbody id="vTable"></tbody></table></div>
 </div>
-
 <div id="motoristas" class="page">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
 <h1 style="font-size:24px">Motoristas</h1>
@@ -205,7 +202,6 @@ tr:hover{background:#f9f9f9}
 </div>
 <div class="card"><table><thead><tr><th>Nome</th><th>Matrícula</th><th>CNH</th><th>Validade CNH</th><th>Telefone</th><th>Unidade</th><th>Status</th><th>Ações</th></tr></thead><tbody id="mTable"></tbody></table></div>
 </div>
-
 <div id="agendamento" class="page">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
 <h1 style="font-size:24px">Agendamento de Viaturas</h1>
@@ -238,7 +234,6 @@ tr:hover{background:#f9f9f9}
 <table><thead><tr><th>Viatura</th><th>Motorista</th><th>Data</th><th>Saída</th><th>Retorno</th><th>Destino</th><th>Status</th><th>Ações</th></tr></thead><tbody id="agTable"></tbody></table>
 </div>
 </div>
-
 <div id="documentos" class="page">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
 <h1 style="font-size:24px">Documentação das Viaturas</h1>
@@ -257,7 +252,6 @@ tr:hover{background:#f9f9f9}
 </div>
 <div class="card"><table><thead><tr><th>Viatura</th><th>Tipo</th><th>Descrição</th><th>Emissão</th><th>Vencimento</th><th>Status</th><th>Ações</th></tr></thead><tbody id="dTable"></tbody></table></div>
 </div>
-
 <div id="ordens" class="page">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
 <h1 style="font-size:24px">Ordens de Serviço</h1>
@@ -272,7 +266,6 @@ tr:hover{background:#f9f9f9}
 </div>
 <div class="card"><table><thead><tr><th>Número</th><th>Viatura</th><th>Placa</th><th>Tipo</th><th>Data</th><th>Responsável</th><th>Custo</th><th>Status</th><th>Ações</th></tr></thead><tbody id="oTable"></tbody></table></div>
 </div>
-
 <div id="historico" class="page">
 <h1 style="font-size:24px;margin-bottom:16px">Histórico de Manutenção</h1>
 <div class="stats">
@@ -291,7 +284,6 @@ tr:hover{background:#f9f9f9}
 </div>
 <div class="card"><div class="timeline" id="timeline"></div></div>
 </div>
-
 <div id="rastreamento" class="page">
 <h1 style="font-size:24px;margin-bottom:16px">Rastreamento</h1>
 <div class="alert info"><strong>Sem GPS real</strong><p>As viaturas no mapa são localizadas pelo endereço cadastrado (Nominatim/OSM).</p></div>
@@ -313,7 +305,6 @@ tr:hover{background:#f9f9f9}
 </div>
 </div>
 </div>
-
 <div id="indicadores" class="page">
 <h1 style="font-size:24px;margin-bottom:16px">Indicadores (KPIs)</h1>
 <div class="stats">
@@ -328,7 +319,6 @@ tr:hover{background:#f9f9f9}
 </div>
 <div class="card" style="margin-top:16px"><h3 style="margin-bottom:12px">Custos Mensais</h3><canvas id="chCustos"></canvas></div>
 </div>
-
 <div id="preve" class="page">
 <h1 style="font-size:24px;margin-bottom:16px">FrotaPM PREVÊ — Previsão de Falhas</h1>
 <div class="alert info"><strong>Como funciona</strong><p>Análise baseada nos dados reais cadastrados. É uma estimativa de risco, não uma garantia.</p></div>
@@ -348,7 +338,6 @@ tr:hover{background:#f9f9f9}
 </div>
 <div class="card"><h3 style="margin-bottom:12px">Plano de prioridade</h3><div id="pvPrior"></div></div>
 </div>
-
 </div>
 </main>
 </div>
@@ -840,12 +829,15 @@ function modalDocumento(id){
 }
 function salvarDocumento(e){
   e.preventDefault();
-  const id=document.getElementById('docId').value;
-  const v=parseInt(document.getElementById('docVit').value);
-  const ven=document.getElementById('docVen').value;
-  if(!v||!ven){toast('Viatura e vencimento obrigatórios','error');return;}
-  const vv=S.viat(v);
-  const d={id:id?Number(id):undefined,viaturaId:v,viaturaNumero:vv?.numero||'',viaturaPlaca:vv?.placa||'',tipo:document.getElementById('docTipo').value,descricao:document.getElementById('docDesc').value.trim(),emissao:document.getElementById('docEmi').value||'',vencimento:ven,observacoes:document.getElementById('docObs').value.trim()};
+  const form=e.target;
+  const id=form.querySelector('#docId').value;
+  const vRaw=String(form.querySelector('#docVit').value||'').trim();
+  const venRaw=String(form.querySelector('#docVen').value||'').trim();
+  if(!vRaw){toast('Selecione uma viatura','error');return;}
+  if(!venRaw){toast('Informe o vencimento','error');return;}
+  const vv=S.viats().find(x=>String(x.id)===vRaw);
+  if(!vv){toast('Viatura não encontrada. Reabra o formulário.','error');return;}
+  const d={id:id?Number(id):undefined,viaturaId:vv.id,viaturaNumero:vv.numero||'',viaturaPlaca:vv.placa||'',tipo:form.querySelector('#docTipo').value,descricao:form.querySelector('#docDesc').value.trim(),emissao:form.querySelector('#docEmi').value||'',vencimento:venRaw,observacoes:form.querySelector('#docObs').value.trim()};
   if(!d.id)delete d.id;
   S.savD(d);
   closeM('mDocumento');
