@@ -123,6 +123,7 @@ tr:hover{background:#f9f9f9}
 <li><a onclick="go('viaturas')" class="ml" data-p="viaturas"><i class="fas fa-car"></i><span>Viaturas</span></a></li>
 <li><a onclick="go('motoristas')" class="ml" data-p="motoristas"><i class="fas fa-id-card"></i><span>Motoristas</span></a></li>
 <li><a onclick="go('agendamento')" class="ml" data-p="agendamento"><i class="fas fa-calendar-alt"></i><span>Agendamento</span></a></li>
+<li><a onclick="go('abastecimento')" class="ml" data-p="abastecimento"><i class="fas fa-gas-pump"></i><span>Abastecimento</span></a></li>
 <li><a onclick="go('documentos')" class="ml" data-p="documentos"><i class="fas fa-file-alt"></i><span>Documentação</span></a></li>
 <li><a onclick="go('ordens')" class="ml" data-p="ordens"><i class="fas fa-list"></i><span>Ordens de Serviço</span></a></li>
 <li><a onclick="go('historico')" class="ml" data-p="historico"><i class="fas fa-history"></i><span>Histórico</span></a></li>
@@ -140,6 +141,7 @@ tr:hover{background:#f9f9f9}
 <div class="navbar-icons"><i class="fas fa-bell"></i><i class="fas fa-cog"></i></div>
 </nav>
 <div class="content">
+
 <div id="dashboard" class="page on">
 <h1 style="font-size:24px;margin-bottom:16px">Dashboard</h1>
 <div class="stats">
@@ -175,6 +177,7 @@ tr:hover{background:#f9f9f9}
 <div id="alertasBox"></div>
 </div>
 </div>
+
 <div id="viaturas" class="page">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
 <h1 style="font-size:24px">Cadastro de Viaturas</h1>
@@ -189,6 +192,7 @@ tr:hover{background:#f9f9f9}
 </div>
 <div class="card"><table><thead><tr><th>Número</th><th>Placa</th><th>Modelo</th><th>Tipo</th><th>Ano</th><th>KM</th><th>Unidade</th><th>Status</th><th>Ações</th></tr></thead><tbody id="vTable"></tbody></table></div>
 </div>
+
 <div id="motoristas" class="page">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
 <h1 style="font-size:24px">Motoristas</h1>
@@ -202,6 +206,7 @@ tr:hover{background:#f9f9f9}
 </div>
 <div class="card"><table><thead><tr><th>Nome</th><th>Matrícula</th><th>CNH</th><th>Validade CNH</th><th>Telefone</th><th>Unidade</th><th>Status</th><th>Ações</th></tr></thead><tbody id="mTable"></tbody></table></div>
 </div>
+
 <div id="agendamento" class="page">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
 <h1 style="font-size:24px">Agendamento de Viaturas</h1>
@@ -234,6 +239,36 @@ tr:hover{background:#f9f9f9}
 <table><thead><tr><th>Viatura</th><th>Motorista</th><th>Data</th><th>Saída</th><th>Retorno</th><th>Destino</th><th>Status</th><th>Ações</th></tr></thead><tbody id="agTable"></tbody></table>
 </div>
 </div>
+
+<div id="abastecimento" class="page">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+<h1 style="font-size:24px">Abastecimento</h1>
+<button onclick="modalAbastecimento()"><i class="fas fa-plus"></i> Novo</button>
+</div>
+<div class="stats">
+<div class="stat warn"><div class="stat-val" id="abGasto">R$ 0</div><div class="stat-lb">Gasto Total</div></div>
+<div class="stat"><div class="stat-val" id="abLitros">0 L</div><div class="stat-lb">Litros Abastecidos</div></div>
+<div class="stat ok"><div class="stat-val" id="abConsumo">—</div><div class="stat-lb">Consumo Médio Frota</div></div>
+<div class="stat roxo"><div class="stat-val" id="abCustoKm">—</div><div class="stat-lb">Custo Médio por KM</div></div>
+</div>
+<div class="card">
+<div class="filters">
+<input type="text" placeholder="Viatura, posto..." id="abFiltro">
+<select id="abSt"><option value="">Todas as Viaturas</option></select>
+<select id="abComb"><option value="">Todos os Combustíveis</option><option>Gasolina</option><option>Etanol</option><option>Diesel</option><option>GNV</option><option>Flex</option></select>
+<input type="date" id="abIni">
+<input type="date" id="abFim">
+</div>
+</div>
+<div class="charts">
+<div class="card"><h3>Gastos Mensais</h3><canvas id="chAbMes"></canvas></div>
+<div class="card"><h3>Consumo por Viatura (km/l)</h3><canvas id="chAbConsumo"></canvas></div>
+</div>
+<div class="card" style="margin-top:16px">
+<table><thead><tr><th>Data</th><th>Viatura</th><th>Combustível</th><th>Litros</th><th>R$/L</th><th>Total</th><th>KM</th><th>Posto</th><th>Ações</th></tr></thead><tbody id="abTable"></tbody></table>
+</div>
+</div>
+
 <div id="documentos" class="page">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
 <h1 style="font-size:24px">Documentação das Viaturas</h1>
@@ -252,6 +287,7 @@ tr:hover{background:#f9f9f9}
 </div>
 <div class="card"><table><thead><tr><th>Viatura</th><th>Tipo</th><th>Descrição</th><th>Emissão</th><th>Vencimento</th><th>Status</th><th>Ações</th></tr></thead><tbody id="dTable"></tbody></table></div>
 </div>
+
 <div id="ordens" class="page">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
 <h1 style="font-size:24px">Ordens de Serviço</h1>
@@ -266,6 +302,7 @@ tr:hover{background:#f9f9f9}
 </div>
 <div class="card"><table><thead><tr><th>Número</th><th>Viatura</th><th>Placa</th><th>Tipo</th><th>Data</th><th>Responsável</th><th>Custo</th><th>Status</th><th>Ações</th></tr></thead><tbody id="oTable"></tbody></table></div>
 </div>
+
 <div id="historico" class="page">
 <h1 style="font-size:24px;margin-bottom:16px">Histórico de Manutenção</h1>
 <div class="stats">
@@ -284,6 +321,7 @@ tr:hover{background:#f9f9f9}
 </div>
 <div class="card"><div class="timeline" id="timeline"></div></div>
 </div>
+
 <div id="rastreamento" class="page">
 <h1 style="font-size:24px;margin-bottom:16px">Rastreamento</h1>
 <div class="alert info"><strong>Sem GPS real</strong><p>As viaturas no mapa são localizadas pelo endereço cadastrado (Nominatim/OSM).</p></div>
@@ -305,6 +343,7 @@ tr:hover{background:#f9f9f9}
 </div>
 </div>
 </div>
+
 <div id="indicadores" class="page">
 <h1 style="font-size:24px;margin-bottom:16px">Indicadores (KPIs)</h1>
 <div class="stats">
@@ -319,6 +358,7 @@ tr:hover{background:#f9f9f9}
 </div>
 <div class="card" style="margin-top:16px"><h3 style="margin-bottom:12px">Custos Mensais</h3><canvas id="chCustos"></canvas></div>
 </div>
+
 <div id="preve" class="page">
 <h1 style="font-size:24px;margin-bottom:16px">FrotaPM PREVÊ — Previsão de Falhas</h1>
 <div class="alert info"><strong>Como funciona</strong><p>Análise baseada nos dados reais cadastrados. É uma estimativa de risco, não uma garantia.</p></div>
@@ -338,6 +378,7 @@ tr:hover{background:#f9f9f9}
 </div>
 <div class="card"><h3 style="margin-bottom:12px">Plano de prioridade</h3><div id="pvPrior"></div></div>
 </div>
+
 </div>
 </main>
 </div>
@@ -387,6 +428,19 @@ tr:hover{background:#f9f9f9}
 </form>
 </div></div>
 
+<div id="mAbastecimento" class="modal"><div class="mc">
+<div class="mh"><h3 id="mAbTitle">Novo Abastecimento</h3><button class="mx" onclick="closeM('mAbastecimento')">×</button></div>
+<form onsubmit="salvarAbastecimento(event)">
+<input type="hidden" id="abId">
+<div class="fr"><div class="fg"><label>Viatura *</label><select id="abVit" required></select></div><div class="fg"><label>Data *</label><input type="date" id="abData" required></div></div>
+<div class="fr"><div class="fg"><label>Combustível *</label><select id="abTipo" required><option>Gasolina</option><option>Etanol</option><option>Diesel</option><option>GNV</option><option>Flex</option></select></div><div class="fg"><label>Quilometragem *</label><input type="number" id="abKm" min="0" required></div></div>
+<div class="fr"><div class="fg"><label>Litros *</label><input type="number" id="abLit" step="0.01" min="0.01" required></div><div class="fg"><label>Valor Total (R$) *</label><input type="number" id="abValor" step="0.01" min="0.01" required></div></div>
+<div class="fr"><div class="fg"><label>Posto</label><input type="text" id="abPosto" placeholder="Ex: Posto Ipiranga"></div><div class="fg"><label>Motorista</label><select id="abMot"><option value="">— Não informado —</option></select></div></div>
+<div class="fg"><label>Observações</label><textarea id="abObs"></textarea></div>
+<div class="btns"><button type="submit" style="flex:1">Salvar</button><button type="button" class="sec" style="flex:1" onclick="closeM('mAbastecimento')">Cancelar</button></div>
+</form>
+</div></div>
+
 <div id="mDocumento" class="modal"><div class="mc">
 <div class="mh"><h3 id="mDocTitle">Novo Documento</h3><button class="mx" onclick="closeM('mDocumento')">×</button></div>
 <form onsubmit="salvarDocumento(event)">
@@ -430,7 +484,8 @@ tr:hover{background:#f9f9f9}
 <div style="margin-bottom:8px"><div style="display:flex;gap:5px;flex-wrap:wrap">
 <button class="sec sm" onclick="pergRap('Quais veículos precisam de manutenção esta semana?')">Manutenção</button>
 <button class="sec sm" onclick="pergRap('Quais veículos estão disponíveis hoje?')">Disponíveis</button>
-<button class="sec sm" onclick="pergRap('Quais viaturas estão agendadas hoje?')">Agenda hoje</button>
+<button class="sec sm" onclick="pergRap('Qual veículo gasta mais combustível?')">Combustível</button>
+<button class="sec sm" onclick="pergRap('Qual o consumo médio da frota?')">Consumo</button>
 <button class="sec sm" onclick="pergRap('Quais documentos estão próximos do vencimento?')">Documentos</button>
 <button class="sec sm" onclick="pergRap('Qual veículo devo priorizar?')">Prioridade</button>
 </div></div>
@@ -443,11 +498,11 @@ tr:hover{background:#f9f9f9}
 <div id="toasts"></div>
 
 <script>
-const DBK='frotapm_db',DBV=5;
-const EMPTY={version:DBV,viaturas:[],ordensServico:[],motoristas:[],agendamentos:[],documentos:[]};
+const DBK='frotapm_db',DBV=6;
+const EMPTY={version:DBV,viaturas:[],ordensServico:[],motoristas:[],agendamentos:[],documentos:[],abastecimentos:[]};
 function mig(d){
   if(!d||typeof d!=='object')return JSON.parse(JSON.stringify(EMPTY));
-  ['viaturas','ordensServico','motoristas','agendamentos','documentos'].forEach(k=>{if(!Array.isArray(d[k]))d[k]=[];});
+  ['viaturas','ordensServico','motoristas','agendamentos','documentos','abastecimentos'].forEach(k=>{if(!Array.isArray(d[k]))d[k]=[];});
   d.viaturas.forEach(v=>{if(v.status==='Em operação')v.status='Operacional';if(!v.tipo)v.tipo='Viatura Operacional';if(typeof v.latitude==='undefined')v.latitude=null;if(typeof v.longitude==='undefined')v.longitude=null;if(typeof v.endereco==='undefined')v.endereco='';if(typeof v.enderecoFormatado==='undefined')v.enderecoFormatado='';});
   d.ordensServico.forEach(o=>{if(!o.tipo)o.tipo='Corretiva';if(!o.status)o.status='Concluída';if(o.status==='Finalizada')o.status='Concluída';if(!Array.isArray(o.pecas))o.pecas=[];if(!o.quilometragem)o.quilometragem=0;});
   d.version=DBV;return d;
@@ -461,17 +516,19 @@ const S={
   save(c,v){const d=this.get();if(!v.id){v.id=this.gid(d[c]);d[c].push(v);}else{const i=d[c].findIndex(x=>x.id===v.id);if(i>=0)d[c][i]={...d[c][i],...v};}this.write(d);return v;},
   del(c,id){const d=this.get();d[c]=d[c].filter(x=>x.id!==id);this.write(d);},
   viats(){return this.get().viaturas;},viat(id){return this.viats().find(v=>v.id===id);},savV(v){return this.save('viaturas',v);},
-  delV(id){const d=this.get();d.viaturas=d.viaturas.filter(v=>v.id!==id);d.ordensServico=d.ordensServico.filter(o=>o.viaturaId!==id);d.agendamentos=d.agendamentos.filter(a=>a.viaturaId!==id);d.documentos=d.documentos.filter(x=>x.viaturaId!==id);this.write(d);},
+  delV(id){const d=this.get();d.viaturas=d.viaturas.filter(v=>v.id!==id);d.ordensServico=d.ordensServico.filter(o=>o.viaturaId!==id);d.agendamentos=d.agendamentos.filter(a=>a.viaturaId!==id);d.documentos=d.documentos.filter(x=>x.viaturaId!==id);d.abastecimentos=d.abastecimentos.filter(x=>x.viaturaId!==id);this.write(d);},
   ords(){return this.get().ordensServico;},ord(id){return this.ords().find(o=>o.id===id);},
   savO(o){const d=this.get();if(!o.id){o.id=this.gid(d.ordensServico);o.numero='OS-'+String(o.id).padStart(3,'0');d.ordensServico.push(o);}else{const i=d.ordensServico.findIndex(x=>x.id===o.id);if(i>=0)d.ordensServico[i]={...d.ordensServico[i],...o};}this.write(d);return o;},
   delO(id){this.del('ordensServico',id);},
   mots(){return this.get().motoristas;},mot(id){return this.mots().find(m=>m.id===id);},savM(m){return this.save('motoristas',m);},delM(id){this.del('motoristas',id);},
   ags(){return this.get().agendamentos;},ag(id){return this.ags().find(a=>a.id===id);},savA(a){return this.save('agendamentos',a);},delA(id){this.del('agendamentos',id);},
-  docs(){return this.get().documentos;},doc(id){return this.docs().find(d=>d.id===id);},savD(d){return this.save('documentos',d);},delD(id){this.del('documentos',id);}
+  docs(){return this.get().documentos;},doc(id){return this.docs().find(d=>d.id===id);},savD(d){return this.save('documentos',d);},delD(id){this.del('documentos',id);},
+  abs(){return this.get().abastecimentos;},ab(id){return this.abs().find(a=>a.id===id);},savAb(a){return this.save('abastecimentos',a);},delAb(id){this.del('abastecimentos',id);}
 };
 function esc(s){if(s==null)return'';return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 function moeda(v){return'R$ '+(Number(v)||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function num(v){return(Number(v)||0).toLocaleString('pt-BR');}
+function num2(v){return(Number(v)||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function dt(s){if(!s)return'-';const d=new Date(s+(s.length===10?'T00:00:00':''));return isNaN(d)?'-':d.toLocaleDateString('pt-BR');}
 function hoje(){return new Date().toISOString().split('T')[0];}
 function diasAte(s){if(!s)return null;const h=new Date();h.setHours(0,0,0,0);return Math.floor((new Date(s+'T00:00:00')-h)/86400000);}
@@ -517,6 +574,44 @@ function porMes(ord,meses=6){
   return r;
 }
 function catFalha(t){t=(t||'').toLowerCase();if(/motor|óleo|oleo|ignição|ignicao/.test(t))return'Motor';if(/freio|pastilha|disco/.test(t))return'Freios';if(/suspens|amortec|mola/.test(t))return'Suspensão';if(/elétric|eletric|bateria|farol|luz/.test(t))return'Elétrico';if(/pneu|alinhamento|balanceamento|roda/.test(t))return'Pneus';return'Outros';}
+function consumoViatura(vid){
+  const arr=S.abs().filter(a=>a.viaturaId===vid&&Number(a.quilometragem)>0).sort((a,b)=>Number(a.quilometragem)-Number(b.quilometragem));
+  if(arr.length<2)return null;
+  const km=Number(arr[arr.length-1].quilometragem)-Number(arr[0].quilometragem);
+  const litros=arr.slice(1).reduce((s,a)=>s+Number(a.litros||0),0);
+  return litros>0?km/litros:null;
+}
+function custoKm(vid){
+  const arr=S.abs().filter(a=>a.viaturaId===vid&&Number(a.quilometragem)>0).sort((a,b)=>Number(a.quilometragem)-Number(b.quilometragem));
+  if(arr.length<2)return null;
+  const km=Number(arr[arr.length-1].quilometragem)-Number(arr[0].quilometragem);
+  const total=arr.reduce((s,a)=>s+Number(a.valorTotal||0),0);
+  return km>0?total/km:null;
+}
+function totalGastoAb(){return S.abs().reduce((s,a)=>s+Number(a.valorTotal||0),0);}
+function totalLitrosAb(){return S.abs().reduce((s,a)=>s+Number(a.litros||0),0);}
+function consumoMedioFrota(){
+  let kmTot=0,litrosTot=0;
+  S.viats().forEach(v=>{
+    const arr=S.abs().filter(a=>a.viaturaId===v.id&&Number(a.quilometragem)>0).sort((a,b)=>Number(a.quilometragem)-Number(b.quilometragem));
+    if(arr.length<2)return;
+    kmTot+=Number(arr[arr.length-1].quilometragem)-Number(arr[0].quilometragem);
+    litrosTot+=arr.slice(1).reduce((s,a)=>s+Number(a.litros||0),0);
+  });
+  return litrosTot>0?kmTot/litrosTot:null;
+}
+function custoMedioKm(){
+  const km=TOTALKMAb(),custo=totalGastoAb();
+  return km>0?custo/km:null;
+}
+function TOTALKMAb(){
+  let km=0;
+  S.viats().forEach(v=>{
+    const arr=S.abs().filter(a=>a.viaturaId===v.id&&Number(a.quilometragem)>0).sort((a,b)=>Number(a.quilometragem)-Number(b.quilometragem));
+    if(arr.length>=2)km+=Number(arr[arr.length-1].quilometragem)-Number(arr[0].quilometragem);
+  });
+  return km;
+}
 function go(p){
   document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));
   const el=document.getElementById(p);if(el)el.classList.add('on');
@@ -526,6 +621,7 @@ function go(p){
   if(p==='viaturas')renderVit();
   if(p==='motoristas')renderMot();
   if(p==='agendamento')renderAg();
+  if(p==='abastecimento')renderAb();
   if(p==='documentos')renderDoc();
   if(p==='ordens')renderOrd();
   if(p==='historico')renderHist();
@@ -598,10 +694,11 @@ function delV(id){
   const o=S.ords().filter(x=>x.viaturaId===id);
   const a=S.ags().filter(x=>x.viaturaId===id);
   const d=S.docs().filter(x=>x.viaturaId===id);
-  let extra='';if(o.length||a.length||d.length)extra='\n\nTambém remove '+o.length+' OS, '+a.length+' agend., '+d.length+' doc.';
+  const ab=S.abs().filter(x=>x.viaturaId===id);
+  let extra='';if(o.length||a.length||d.length||ab.length)extra='\n\nTambém remove '+o.length+' OS, '+a.length+' agend., '+d.length+' doc., '+ab.length+' abastec.';
   confirmar('Excluir '+v.numero+' ('+v.placa+')?'+extra,()=>{
     S.delV(id);toast('Viatura excluída!');
-    renderVit();renderDash();renderOrd();renderHist();renderAg();renderDoc();atualizaPrev();
+    renderVit();renderDash();renderOrd();renderHist();renderAg();renderDoc();renderAb();atualizaPrev();
   });
 }
 function renderVit(){
@@ -799,6 +896,107 @@ function renderAg(){
     ac.push('<button class="danger sm" onclick="delA('+a.id+')">Excluir</button>');
     return'<tr><td><strong>'+esc(a.viaturaNumero)+'</strong><br><small style="color:#666">'+esc(a.viaturaPlaca)+'</small></td><td>'+esc(a.motoristaNome)+'</td><td>'+dt(a.data)+'</td><td>'+esc(a.saida)+'</td><td>'+esc(a.retorno)+'</td><td>'+esc(a.destino)+'</td><td>'+statusBadge(a.status)+'</td><td><div style="display:flex;gap:3px;flex-wrap:wrap">'+ac.join('')+'</div></td></tr>';
   }).join('');
+}
+function modalAbastecimento(id){
+  const f=document.querySelector('#mAbastecimento form');f.reset();
+  document.getElementById('abId').value='';
+  document.getElementById('mAbTitle').textContent='Novo Abastecimento';
+  const vs=S.viats();
+  if(!vs.length){toast('Cadastre viatura primeiro','warning');return;}
+  document.getElementById('abVit').innerHTML='<option value="">Selecione</option>'+vs.map(v=>'<option value="'+v.id+'">'+esc(v.numero)+' - '+esc(v.placa)+'</option>').join('');
+  const ms=S.mots().filter(m=>m.status==='Ativo');
+  document.getElementById('abMot').innerHTML='<option value="">— Não informado —</option>'+ms.map(m=>'<option value="'+m.id+'">'+esc(m.nome)+'</option>').join('');
+  document.getElementById('abData').value=hoje();
+  if(id){
+    const a=S.ab(id);if(!a)return;
+    document.getElementById('mAbTitle').textContent='Editar Abastecimento';
+    document.getElementById('abId').value=a.id;
+    document.getElementById('abVit').value=a.viaturaId;
+    document.getElementById('abData').value=a.data||hoje();
+    document.getElementById('abTipo').value=a.combustivel||'Gasolina';
+    document.getElementById('abKm').value=a.quilometragem||0;
+    document.getElementById('abLit').value=a.litros||0;
+    document.getElementById('abValor').value=a.valorTotal||0;
+    document.getElementById('abPosto').value=a.posto||'';
+    if(a.motoristaId)document.getElementById('abMot').value=a.motoristaId;
+    document.getElementById('abObs').value=a.observacoes||'';
+  }
+  openM('mAbastecimento');
+}
+function salvarAbastecimento(e){
+  e.preventDefault();
+  const form=e.target;
+  const id=form.querySelector('#abId').value;
+  const vRaw=String(form.querySelector('#abVit').value||'').trim();
+  if(!vRaw){toast('Selecione uma viatura','error');return;}
+  const vv=S.viats().find(x=>String(x.id)===vRaw);
+  if(!vv){toast('Viatura não encontrada','error');return;}
+  const litros=parseFloat(form.querySelector('#abLit').value)||0;
+  const valor=parseFloat(form.querySelector('#abValor').value)||0;
+  const km=parseInt(form.querySelector('#abKm').value)||0;
+  if(litros<=0){toast('Litros deve ser maior que zero','error');return;}
+  if(valor<=0){toast('Valor deve ser maior que zero','error');return;}
+  if(km<0){toast('Quilometragem inválida','error');return;}
+  const motId=form.querySelector('#abMot').value;
+  const motorista=motId?S.mot(Number(motId)):null;
+  const a={id:id?Number(id):undefined,viaturaId:vv.id,viaturaNumero:vv.numero||'',viaturaPlaca:vv.placa||'',data:form.querySelector('#abData').value,combustivel:form.querySelector('#abTipo').value,quilometragem:km,litros,valorTotal:valor,valorLitro:litros>0?valor/litros:0,posto:form.querySelector('#abPosto').value.trim(),motoristaId:motId?Number(motId):null,motoristaNome:motorista?.nome||'',observacoes:form.querySelector('#abObs').value.trim()};
+  if(!a.id)delete a.id;
+  S.savAb(a);
+  if(km>(vv.quilometragem||0))S.savV({...vv,quilometragem:km});
+  closeM('mAbastecimento');
+  toast(id?'Abastecimento atualizado!':'Abastecimento cadastrado!');
+  renderAb();renderVit();renderDash();
+}
+function delAb(id){
+  const a=S.ab(id);if(!a)return;
+  confirmar('Excluir abastecimento de '+a.viaturaNumero+' em '+dt(a.data)+'?',()=>{
+    S.delAb(id);toast('Abastecimento excluído!');
+    renderAb();renderDash();
+  });
+}
+function renderAb(){
+  const abs=S.abs();
+  const gasto=totalGastoAb(),litros=totalLitrosAb();
+  const consumo=consumoMedioFrota(),ckm=custoMedioKm();
+  const e1=document.getElementById('abGasto');if(e1)e1.textContent=moeda(gasto);
+  const e2=document.getElementById('abLitros');if(e2)e2.textContent=num2(litros)+' L';
+  const e3=document.getElementById('abConsumo');if(e3)e3.textContent=consumo?num2(consumo)+' km/l':'—';
+  const e4=document.getElementById('abCustoKm');if(e4)e4.textContent=ckm?moeda(ckm)+'/km':'—';
+  const sel=document.getElementById('abSt');
+  if(sel&&sel.options.length<=1)sel.innerHTML='<option value="">Todas as Viaturas</option>'+S.viats().map(v=>'<option value="'+v.id+'">'+esc(v.numero)+' - '+esc(v.placa)+'</option>').join('');
+  const tb=document.getElementById('abTable');if(!tb)return;
+  const f=(document.getElementById('abFiltro')?.value||'').toLowerCase();
+  const vf=document.getElementById('abSt')?.value||'';
+  const cf=document.getElementById('abComb')?.value||'';
+  const di=document.getElementById('abIni')?.value;
+  const df=document.getElementById('abFim')?.value;
+  const l=abs.filter(a=>{
+    if(vf&&String(a.viaturaId)!==vf)return false;
+    if(cf&&a.combustivel!==cf)return false;
+    if(di&&a.data<di)return false;
+    if(df&&a.data>df)return false;
+    if(f){const t=(a.viaturaNumero+' '+(a.posto||'')+' '+(a.motoristaNome||'')).toLowerCase();if(!t.includes(f))return false;}
+    return true;
+  }).sort((a,b)=>new Date(b.data)-new Date(a.data));
+  if(!l.length){tb.innerHTML='<tr><td colspan="9"><div class="empty"><i class="fas fa-gas-pump"></i>Nenhum abastecimento</div></td></tr>';}
+  else{
+    tb.innerHTML=l.map(a=>'<tr><td>'+dt(a.data)+'</td><td><strong>'+esc(a.viaturaNumero)+'</strong><br><small style="color:#666">'+esc(a.viaturaPlaca)+'</small></td><td>'+esc(a.combustivel)+'</td><td>'+num2(a.litros)+' L</td><td>'+moeda(a.valorLitro)+'</td><td><strong>'+moeda(a.valorTotal)+'</strong></td><td>'+num(a.quilometragem)+'</td><td>'+esc(a.posto||'-')+'</td><td><button class="sec sm" onclick="modalAbastecimento('+a.id+')">Editar</button> <button class="danger sm" onclick="delAb('+a.id+')">Excluir</button></td></tr>').join('');
+  }
+  renderAbCharts();
+}
+function renderAbCharts(){
+  const a=new Date(),labels=[],tot=[];
+  for(let i=5;i>=0;i--){
+    const d=new Date(a.getFullYear(),a.getMonth()-i,1);
+    const lb=d.toLocaleDateString('pt-BR',{month:'short'}).replace('.','');
+    const ini=new Date(d.getFullYear(),d.getMonth(),1);
+    const fim=new Date(d.getFullYear(),d.getMonth()+1,0,23,59,59);
+    const doMes=S.abs().filter(x=>{const xd=new Date(x.data+'T00:00:00');return xd>=ini&&xd<=fim;});
+    labels.push(lb);tot.push(doMes.reduce((s,x)=>s+Number(x.valorTotal||0),0));
+  }
+  drawC('chAbMes','bar',{labels,datasets:[{label:'Gasto (R$)',data:tot,backgroundColor:'#F39C12'}]});
+  const vs=S.viats().map(v=>({n:v.numero,c:consumoViatura(v.id)})).filter(x=>x.c!=null);
+  drawC('chAbConsumo','bar',{labels:vs.map(v=>v.n),datasets:[{label:'km/l',data:vs.map(v=>Number(v.c.toFixed(2))),backgroundColor:'#2ECC71'}]});
 }
 function stDoc(d){
   if(!d.vencimento)return{label:'Sem info',cor:'info'};
@@ -1184,19 +1382,33 @@ function iaMsg(au,tx){const c=document.getElementById('iaChat');if(!c)return;con
 function toggleIA(){
   const m=document.getElementById('iaModal');
   if(m.classList.contains('on'))closeM('iaModal');
-  else{openM('iaModal');const c=document.getElementById('iaChat');if(!c.children.length)iaMsg('ia','Olá! Sou a Frota IA. Posso responder sobre viaturas, manutenções, motoristas, agendamentos, documentos, custos e riscos. Use uma sugestão ou digite.');setTimeout(()=>document.getElementById('iaInput')?.focus(),200);}
+  else{openM('iaModal');const c=document.getElementById('iaChat');if(!c.children.length)iaMsg('ia','Olá! Sou a Frota IA. Posso responder sobre viaturas, manutenções, motoristas, agendamentos, abastecimento, documentos, custos e riscos. Use uma sugestão ou digite.');setTimeout(()=>document.getElementById('iaInput')?.focus(),200);}
 }
 function pergRap(t){const i=document.getElementById('iaInput');if(!i)return;i.value=t;enviarPerg({preventDefault:()=>{}});}
 function enviarPerg(e){if(e&&e.preventDefault)e.preventDefault();const i=document.getElementById('iaInput');if(!i)return;const p=i.value.trim();if(!p)return;iaMsg('user',p);i.value='';setTimeout(()=>iaMsg('ia',responder(p)),200);}
 function responder(p){
   const q=(p||'').toLowerCase().trim();
   const db=S.get();
-  const vs=db.viaturas||[],os=db.ordensServico||[],ms=db.motoristas||[],as=db.agendamentos||[],ds=db.documentos||[];
+  const vs=db.viaturas||[],os=db.ordensServico||[],ms=db.motoristas||[],as=db.agendamentos||[],ds=db.documentos||[],abs=db.abastecimentos||[];
   if(!vs.length)return'Sem dados suficientes. Cadastre viaturas e ordens primeiro.';
   const an=viatsRisco();
   if(/precisam?.*manuten|manuten.*esta semana/i.test(q)){const e=an.filter(x=>x.sc>=25);if(!e.length)return'Nenhuma precisa de manutenção.';return e.length+' veículo(s) precisam de atenção:\n\n'+e.slice(0,8).map(x=>'• '+x.viatura.numero+' — '+x.n+' ('+x.sc+'/100)\n   '+(x.mt[0]||'')).join('\n\n');}
   if(/qual.*retirar|qual.*priorizar|prioridade/i.test(q)){const t=an[0];if(!t||t.sc<25)return'Nada a priorizar.';return t.viatura.numero+' deve ser priorizada.\n\nRisco: '+t.sc+'/100 ('+t.n+')\n\nMotivos:\n'+t.mt.map(m=>'• '+m).join('\n')+'\n\nRecomendação: '+t.recom+'.';}
   if(/risco alto|risco cr[íi]tico/i.test(q)){const e=an.filter(x=>x.n==='Alto'||x.n==='Crítico');if(!e.length)return'Nenhuma em risco alto/crítico.';return e.length+' viatura(s):\n\n'+e.map(x=>'• '+x.viatura.numero+' — '+x.n+' ('+x.sc+'/100)').join('\n');}
+  if(/combust[íi]vel|abastec|gasolina|diesel|etanol/i.test(q)){
+    if(!abs.length)return'Nenhum abastecimento registrado.';
+    if(/gast|maior.*gast|quanto.*gast|gasto/i.test(q)){
+      const c=vs.map(v=>({v,tt:abs.filter(a=>a.viaturaId===v.id).reduce((s,a)=>s+Number(a.valorTotal||0),0)})).sort((a,b)=>b.tt-a.tt);
+      if(!c[0]||c[0].tt===0)return'Nenhum gasto registrado.';
+      return c[0].v.numero+' tem maior gasto com combustível: '+moeda(c[0].tt)+'.\n\nTotal da frota: '+moeda(totalGastoAb());
+    }
+    if(/consumo|m[ée]dio|km\/l|km por litro/i.test(q)){
+      const cf=consumoMedioFrota();
+      if(!cf)return'Ainda não há abastecimentos suficientes (mínimo 2 por viatura) para calcular o consumo médio.';
+      return'Consumo médio da frota: '+num2(cf)+' km/l';
+    }
+    return'Total abastecido: '+num2(totalLitrosAb())+' L\nGasto total: '+moeda(totalGastoAb())+'\nAbastecimentos: '+abs.length;
+  }
   if(/documento|vencimento.*doc|doc.*venc/i.test(q)){const v=ds.filter(d=>{const s=stDoc(d);return s.cor==='warning'||s.cor==='danger';});if(!v.length)return'Nenhum documento em atenção.';return v.length+' documento(s):\n\n'+v.map(d=>'• '+d.viaturaNumero+' — '+d.tipo+' ('+stDoc(d).label+')').join('\n');}
   if(/cnh|motorista.*venc|venc.*cnh/i.test(q)){const v=ms.filter(m=>{const s=stCnh(m);return s.cor==='warning'||s.cor==='danger';});if(!v.length)return'Nenhuma CNH em atenção.';return v.length+' CNH(s):\n\n'+v.map(m=>'• '+m.nome+' — '+stCnh(m).label).join('\n');}
   if(/disponibilidade|sa[úu]de|como est[áa].*frota/i.test(q)){const k=kpis(db),s=saudeFrota();return'Disponibilidade: '+k.disp.toFixed(1)+'%\n'+(s?('Saúde: '+s.pct+'% ('+s.lb+')\n'):'')+'\n• Total: '+k.tot+'\n• Operacionais: '+k.op+'\n• Manutenção: '+k.man+'\n• Indisponíveis: '+k.ind;}
@@ -1211,9 +1423,9 @@ function responder(p){
   if(/quantos|quantas.*motorista/i.test(q))return ms.length+' motorista(s) cadastrado(s).';
   if(/quantas.*viatura|total.*viatura/i.test(q))return vs.length+' viatura(s) cadastrada(s).';
   if(/quantas.*manuten|total.*manuten|quantas.*os/i.test(q)){const conc=os.filter(o=>o.status==='Concluída').length;const ab=os.filter(o=>['Agendada','Em andamento'].includes(o.status)).length;return'Total de ordens: '+os.length+'\n• Concluídas: '+conc+'\n• Abertas: '+ab;}
-  if(/custo total|gasto total|quanto.*gast/i.test(q)){const k=kpis(db);return'Custo total: '+moeda(k.custo)+'.';}
+  if(/custo total|gasto total|quanto.*gast/i.test(q)){const k=kpis(db);return'Custo total de manutenção: '+moeda(k.custo)+'.\nCusto total de combustível: '+moeda(totalGastoAb())+'.';}
   if(/cr[íi]tic|top.*risco|mais.*risco/i.test(q)){const top=an.slice(0,5);return'Mais críticas:\n\n'+top.map((x,i)=>(i+1)+'. '+x.viatura.numero+' — '+x.n+' ('+x.sc+'/100)').join('\n');}
-  if(/ajuda|help|pode|comandos/i.test(q))return'Posso responder:\n\n• Quais veículos precisam de manutenção esta semana?\n• Qual veículo devo priorizar?\n• Quais veículos estão em risco alto?\n• Quais veículos estão com manutenção atrasada?\n• Quais viaturas estão agendadas hoje?\n• Quais veículos estão disponíveis hoje?\n• Quais documentos estão próximos do vencimento?\n• Quais CNHs estão próximas do vencimento?\n• Qual veículo tem mais falhas?\n• Qual veículo gera maior custo?\n• Como está a disponibilidade da frota?\n• Quantos motoristas estão cadastrados?';
+  if(/ajuda|help|pode|comandos/i.test(q))return'Posso responder:\n\n• Quais veículos precisam de manutenção esta semana?\n• Qual veículo devo priorizar?\n• Quais veículos estão em risco alto?\n• Qual veículo gasta mais combustível?\n• Qual o consumo médio da frota?\n• Quais viaturas estão agendadas hoje?\n• Quais veículos estão disponíveis hoje?\n• Quais documentos estão próximos do vencimento?\n• Quais CNHs estão próximas do vencimento?\n• Como está a disponibilidade da frota?';
   return'Não entendi. Digite "ajuda" para ver o que posso responder.';
 }
 document.addEventListener('DOMContentLoaded',()=>{
@@ -1221,6 +1433,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   ['vFiltro','vSt','vUn'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('input',renderVit);});
   ['mFiltro','mSt'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('input',renderMot);});
   ['agFiltro','agSt'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('input',renderAg);});
+  ['abFiltro','abSt','abComb','abIni','abFim'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('input',renderAb);});
   ['dFiltro','dSt'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('input',renderDoc);});
   ['oFiltro','oSt','oTp'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('input',renderOrd);});
   ['hFiltro','hVit','hTp','hResp','hIni','hFim'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('input',renderHist);});
@@ -1236,6 +1449,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(ativo==='viaturas')renderVit();
     if(ativo==='motoristas')renderMot();
     if(ativo==='agendamento')renderAg();
+    if(ativo==='abastecimento')renderAb();
     if(ativo==='documentos')renderDoc();
     if(ativo==='ordens')renderOrd();
     if(ativo==='historico')renderHist();
@@ -1244,7 +1458,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(ativo==='rastreamento'){renderMapMarks();renderMapList();}
     atualizaPrev();
   });
-  try{renderDash();renderVit();renderMot();renderAg();renderDoc();renderOrd();renderHist();renderInd();renderPrevDash();}catch(e){console.error('Render:',e);}
+  try{renderDash();renderVit();renderMot();renderAg();renderAb();renderDoc();renderOrd();renderHist();renderInd();renderPrevDash();}catch(e){console.error('Render:',e);}
 });
 </script>
 </body>
