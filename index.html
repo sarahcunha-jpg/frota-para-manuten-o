@@ -48,6 +48,7 @@ button:hover{background:var(--azul)}
 button.sec{background:#e0e0e0;color:var(--txt)}
 button.danger{background:var(--verm)}
 button.ok{background:var(--verde)}
+button.roxo{background:#9B59B6}
 button.sm{padding:5px 9px;font-size:12px;min-height:32px}
 .btns{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
 table{width:100%;border-collapse:collapse;background:#fff}
@@ -108,6 +109,20 @@ tr:hover{background:#f9f9f9}
 .adia .dn{font-weight:700;color:var(--azul);font-size:13px;margin-bottom:3px}
 .adia .ev{background:var(--azul2);color:#fff;border-radius:3px;padding:1px 4px;font-size:9px;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .adia .ev.cf{background:var(--verm)}
+.rep-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.rep-item{background:#fff;padding:16px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,.08);border-left:4px solid var(--azul2);display:flex;flex-direction:column;gap:10px}
+.rep-item h4{margin:0;color:var(--azul);font-size:15px}
+.rep-item p{font-size:12px;color:#666;margin:0;flex:1}
+.kpi-mini{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px}
+.kpi-mini .stat{padding:12px}
+.kpi-mini .stat-val{font-size:22px}
+@media print{
+  .sidebar,.navbar,.btn-print,.filters,.rep-grid,.ml,button,#iaBtn,.backdrop{display:none !important}
+  .main{margin-left:0;width:100%}
+  .card{box-shadow:none;border:1px solid #ddd;page-break-inside:avoid}
+  .stat{box-shadow:none;border:1px solid #ddd}
+  body{background:#fff}
+}
 @media(max-width:1024px){.sidebar{transform:translateX(-100%)}.sidebar.on{transform:translateX(0)}.main{margin-left:0;width:100%}.menu-btn{display:flex;align-items:center;justify-content:center}.charts{grid-template-columns:1fr}}
 @media(max-width:768px){.content{padding:12px}.stats{grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}.stat{padding:12px}.stat-val{font-size:22px}.fr,.fr3{grid-template-columns:1fr}.filters{grid-template-columns:1fr 1fr}.mc{padding:18px;max-height:94dvh}.modal{padding:8px}th,td{padding:8px 10px;font-size:12px}.card>table{min-width:600px}#map{height:320px !important}#iaBtn{width:52px;height:52px;font-size:22px;bottom:16px;right:16px}#iaModal .mc{width:100vw;height:100dvh;max-width:100vw;max-height:100dvh;border-radius:0;padding:14px}.navbar{padding:8px 12px;height:auto;min-height:56px}.navbar-search{order:10;flex-basis:100%;max-width:none;margin-top:6px}.agrid{gap:3px}.adia{padding:4px;min-height:60px;font-size:9px}}
 @media(max-width:480px){.stats{grid-template-columns:1fr}.stat-val{font-size:20px}.filters{grid-template-columns:1fr}.sidebar{width:260px}.timeline{padding-left:36px}.timeline::before{left:16px}.titem::before{left:-30px;width:14px;height:14px;border-width:2px}}
@@ -129,6 +144,7 @@ tr:hover{background:#f9f9f9}
 <li><a onclick="go('historico')" class="ml" data-p="historico"><i class="fas fa-history"></i><span>Histórico</span></a></li>
 <li><a onclick="go('rastreamento')" class="ml" data-p="rastreamento"><i class="fas fa-map-marker-alt"></i><span>Rastreamento</span></a></li>
 <li><a onclick="go('indicadores')" class="ml" data-p="indicadores"><i class="fas fa-chart-bar"></i><span>Indicadores</span></a></li>
+<li><a onclick="go('relatorios')" class="ml" data-p="relatorios"><i class="fas fa-file-export"></i><span>Relatórios</span></a></li>
 <li><a onclick="go('preve')" class="ml" data-p="preve"><i class="fas fa-shield-alt"></i><span>FrotaPM PREVÊ</span></a></li>
 </ul>
 <div class="sidebar-profile"><div class="avatar">RC</div><div><strong>Rayane Cruz</strong><small>Administrador</small></div></div>
@@ -154,7 +170,7 @@ tr:hover{background:#f9f9f9}
 <div class="stat"><div class="stat-val" id="dOs">0</div><div class="stat-lb">OS Abertas</div></div>
 <div class="stat ok"><div class="stat-val" id="dConc">0</div><div class="stat-lb">OS Concluídas</div></div>
 <div class="stat warn"><div class="stat-val" id="dCusto">R$ 0</div><div class="stat-lb">Custo Manutenção</div></div>
-<div class="stat roxo"><div class="stat-val" id="dAg">0</div><div class="stat-lb">Agendamentos Hoje</div></div>
+<div class="stat roxo"><div class="stat-val" id="dComb">R$ 0</div><div class="stat-lb">Custo Combustível</div></div>
 </div>
 <div class="card">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:10px">
@@ -352,11 +368,83 @@ tr:hover{background:#f9f9f9}
 <div class="stat"><div style="font-size:11px;color:#666;font-weight:600">MTBF</div><div class="stat-val" style="color:var(--azul2)" id="kMtbf">—</div></div>
 <div class="stat"><div style="font-size:11px;color:#666;font-weight:600">CUSTO/VIATURA</div><div class="stat-val" style="color:var(--verm)" id="kCusto">R$ 0</div></div>
 </div>
+<div class="kpi-mini">
+<div class="stat"><div class="stat-val" id="kCustoKm">—</div><div class="stat-lb">Custo Total por KM</div></div>
+<div class="stat"><div class="stat-val" id="kFalhas">0</div><div class="stat-lb">Total de Falhas (corretivas)</div></div>
+<div class="stat"><div class="stat-val" id="kPrev">0</div><div class="stat-lb">Manutenções Preventivas</div></div>
+<div class="stat"><div class="stat-val" id="kCorr">0</div><div class="stat-lb">Manutenções Corretivas</div></div>
+</div>
+<div class="kpi-mini">
+<div class="stat"><div class="stat-val" id="kParada">0h</div><div class="stat-lb">Tempo Total de Parada</div></div>
+<div class="stat"><div class="stat-val" id="kConsumo">—</div><div class="stat-lb">Consumo Médio (km/l)</div></div>
+<div class="stat"><div class="stat-val" id="kPrevPrazo">—</div><div class="stat-lb">Preventivas no Prazo</div></div>
+<div class="stat"><div class="stat-val" id="kUso">0</div><div class="stat-lb">Agendamentos Realizados</div></div>
+</div>
 <div class="charts">
 <div class="card"><h3>Disponibilidade</h3><canvas id="chDisp"></canvas></div>
 <div class="card"><h3>Tipos de Falhas</h3><canvas id="chFalhas"></canvas></div>
 </div>
-<div class="card" style="margin-top:16px"><h3 style="margin-bottom:12px">Custos Mensais</h3><canvas id="chCustos"></canvas></div>
+<div class="charts" style="margin-top:16px">
+<div class="card"><h3>Preventivas x Corretivas</h3><canvas id="chPrevCorr"></canvas></div>
+<div class="card"><h3>Custo por KM por Viatura</h3><canvas id="chCustoKmVit"></canvas></div>
+</div>
+<div class="card" style="margin-top:16px"><h3 style="margin-bottom:12px">Custos Mensais (Manutenção + Combustível)</h3><canvas id="chCustos"></canvas></div>
+</div>
+
+<div id="relatorios" class="page">
+<h1 style="font-size:24px;margin-bottom:16px">Relatórios</h1>
+<div class="alert info"><strong>Como funciona</strong><p>Escolha um relatório e clique em <b>Exportar CSV</b> (abre no Excel) ou <b>Imprimir / PDF</b> (Ctrl+P do navegador → Salvar como PDF).</p></div>
+<div class="rep-grid">
+<div class="rep-item">
+<h4>Viaturas</h4>
+<p>Todas as viaturas com número, placa, modelo, ano, km, unidade e status.</p>
+<div class="btns"><button class="ok sm" onclick="exportarCSV('viaturas')">Exportar CSV</button><button class="sec sm btn-print" onclick="imprimirRelatorio('viaturas')">Imprimir / PDF</button></div>
+</div>
+<div class="rep-item">
+<h4>Ordens de Serviço</h4>
+<p>Todas as ordens com número, viatura, tipo, data, responsável, custo e status.</p>
+<div class="btns"><button class="ok sm" onclick="exportarCSV('ordens')">Exportar CSV</button><button class="sec sm btn-print" onclick="imprimirRelatorio('ordens')">Imprimir / PDF</button></div>
+</div>
+<div class="rep-item">
+<h4>Histórico de Manutenção</h4>
+<p>Somente ordens concluídas, com peças, tempo de parada e custo.</p>
+<div class="btns"><button class="ok sm" onclick="exportarCSV('historico')">Exportar CSV</button><button class="sec sm btn-print" onclick="imprimirRelatorio('historico')">Imprimir / PDF</button></div>
+</div>
+<div class="rep-item">
+<h4>Abastecimentos</h4>
+<p>Todos os abastecimentos com litros, valor, R$/L, posto e motorista.</p>
+<div class="btns"><button class="ok sm" onclick="exportarCSV('abastecimentos')">Exportar CSV</button><button class="sec sm btn-print" onclick="imprimirRelatorio('abastecimentos')">Imprimir / PDF</button></div>
+</div>
+<div class="rep-item">
+<h4>Motoristas</h4>
+<p>Nome, matrícula, categoria CNH, validade, telefone e status.</p>
+<div class="btns"><button class="ok sm" onclick="exportarCSV('motoristas')">Exportar CSV</button><button class="sec sm btn-print" onclick="imprimirRelatorio('motoristas')">Imprimir / PDF</button></div>
+</div>
+<div class="rep-item">
+<h4>Agendamentos</h4>
+<p>Viatura, motorista, data, horários, destino, finalidade e status.</p>
+<div class="btns"><button class="ok sm" onclick="exportarCSV('agendamentos')">Exportar CSV</button><button class="sec sm btn-print" onclick="imprimirRelatorio('agendamentos')">Imprimir / PDF</button></div>
+</div>
+<div class="rep-item">
+<h4>Documentação</h4>
+<p>Tipo, viatura, emissão, vencimento e status (regular / vencendo / vencido).</p>
+<div class="btns"><button class="ok sm" onclick="exportarCSV('documentos')">Exportar CSV</button><button class="sec sm btn-print" onclick="imprimirRelatorio('documentos')">Imprimir / PDF</button></div>
+</div>
+<div class="rep-item">
+<h4>Custos Consolidados</h4>
+<p>Por viatura: custo total de manutenção, combustível e custo total geral.</p>
+<div class="btns"><button class="ok sm" onclick="exportarCSV('custos')">Exportar CSV</button><button class="sec sm btn-print" onclick="imprimirRelatorio('custos')">Imprimir / PDF</button></div>
+</div>
+<div class="rep-item">
+<h4>Disponibilidade e Uso</h4>
+<p>Por viatura: status atual, total de OS, custo total, km e uso em agendamentos.</p>
+<div class="btns"><button class="ok sm" onclick="exportarCSV('disponibilidade')">Exportar CSV</button><button class="sec sm btn-print" onclick="imprimirRelatorio('disponibilidade')">Imprimir / PDF</button></div>
+</div>
+</div>
+<div class="card" style="margin-top:16px">
+<h3 style="margin-bottom:12px">Pré-visualização</h3>
+<div id="previewRelatorio" class="empty"><i class="fas fa-file-alt"></i>Escolha um relatório acima para visualizar antes de exportar.</div>
+</div>
 </div>
 
 <div id="preve" class="page">
@@ -498,7 +586,7 @@ tr:hover{background:#f9f9f9}
 <div id="toasts"></div>
 
 <script>
-const DBK='frotapm_db',DBV=6;
+const DBK='frotapm_db',DBV=7;
 const EMPTY={version:DBV,viaturas:[],ordensServico:[],motoristas:[],agendamentos:[],documentos:[],abastecimentos:[]};
 function mig(d){
   if(!d||typeof d!=='object')return JSON.parse(JSON.stringify(EMPTY));
@@ -581,7 +669,7 @@ function consumoViatura(vid){
   const litros=arr.slice(1).reduce((s,a)=>s+Number(a.litros||0),0);
   return litros>0?km/litros:null;
 }
-function custoKm(vid){
+function custoKmViatura(vid){
   const arr=S.abs().filter(a=>a.viaturaId===vid&&Number(a.quilometragem)>0).sort((a,b)=>Number(a.quilometragem)-Number(b.quilometragem));
   if(arr.length<2)return null;
   const km=Number(arr[arr.length-1].quilometragem)-Number(arr[0].quilometragem);
@@ -590,27 +678,49 @@ function custoKm(vid){
 }
 function totalGastoAb(){return S.abs().reduce((s,a)=>s+Number(a.valorTotal||0),0);}
 function totalLitrosAb(){return S.abs().reduce((s,a)=>s+Number(a.litros||0),0);}
-function consumoMedioFrota(){
-  let kmTot=0,litrosTot=0;
-  S.viats().forEach(v=>{
-    const arr=S.abs().filter(a=>a.viaturaId===v.id&&Number(a.quilometragem)>0).sort((a,b)=>Number(a.quilometragem)-Number(b.quilometragem));
-    if(arr.length<2)return;
-    kmTot+=Number(arr[arr.length-1].quilometragem)-Number(arr[0].quilometragem);
-    litrosTot+=arr.slice(1).reduce((s,a)=>s+Number(a.litros||0),0);
-  });
-  return litrosTot>0?kmTot/litrosTot:null;
-}
-function custoMedioKm(){
-  const km=TOTALKMAb(),custo=totalGastoAb();
-  return km>0?custo/km:null;
-}
-function TOTALKMAb(){
+function totalKmAb(){
   let km=0;
   S.viats().forEach(v=>{
     const arr=S.abs().filter(a=>a.viaturaId===v.id&&Number(a.quilometragem)>0).sort((a,b)=>Number(a.quilometragem)-Number(b.quilometragem));
     if(arr.length>=2)km+=Number(arr[arr.length-1].quilometragem)-Number(arr[0].quilometragem);
   });
   return km;
+}
+function consumoMedioFrota(){
+  const km=totalKmAb(),l=totalLitrosAb();
+  return l>0?km/l:null;
+}
+function custoMedioKmAb(){
+  const km=totalKmAb(),c=totalGastoAb();
+  return km>0?c/km:null;
+}
+function custoTotalViatura(vid){
+  const man=S.ords().filter(o=>o.viaturaId===vid&&o.status==='Concluída').reduce((s,o)=>s+(Number(o.custo)||0),0);
+  const comb=S.abs().filter(a=>a.viaturaId===vid).reduce((s,a)=>s+Number(a.valorTotal||0),0);
+  return{man,comb,total:man+comb};
+}
+function kmTotalViatura(vid){
+  const arr=S.abs().filter(a=>a.viaturaId===vid&&Number(a.quilometragem)>0).sort((a,b)=>Number(a.quilometragem)-Number(b.quilometragem));
+  if(arr.length<2)return 0;
+  return Number(arr[arr.length-1].quilometragem)-Number(arr[0].quilometragem);
+}
+function custoTotalPorKm(vid){
+  const km=kmTotalViatura(vid);if(km<=0)return null;
+  const c=custoTotalViatura(vid);
+  return c.total/km;
+}
+function preventivasNoPrazo(){
+  const prev=S.ords().filter(o=>o.tipo==='Preventiva'&&o.status==='Concluída');
+  if(!prev.length)return null;
+  let noPrazo=0;
+  prev.forEach(o=>{
+    const v=S.viat(vid=o.viaturaId);
+    if(!v){noPrazo++;return;}
+    if(v.proximaManutencaoData&&o.data<=v.proximaManutencaoData)noPrazo++;
+    else if(v.proximaManutencaoKm&&Number(o.quilometragem||0)<=Number(v.proximaManutencaoKm))noPrazo++;
+    else noPrazo++;
+  });
+  return{pct:(noPrazo/prev.length)*100,noPrazo,total:prev.length};
 }
 function go(p){
   document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));
@@ -626,6 +736,7 @@ function go(p){
   if(p==='ordens')renderOrd();
   if(p==='historico')renderHist();
   if(p==='indicadores')renderInd();
+  if(p==='relatorios')renderRelatorios();
   if(p==='preve')renderPreve();
   if(p==='rastreamento'){initMap();renderMapList();}
   if(window.innerWidth<=1024)closeSidebar();
@@ -715,13 +826,7 @@ function renderVit(){
   if(!l.length){tb.innerHTML='<tr><td colspan="9"><div class="empty"><i class="fas fa-car"></i>Nenhuma viatura</div></td></tr>';return;}
   tb.innerHTML=l.map(v=>'<tr><td><strong>'+esc(v.numero)+'</strong></td><td>'+esc(v.placa)+'</td><td>'+esc(v.modelo)+'</td><td>'+esc(v.tipo||'-')+'</td><td>'+esc(v.ano)+'</td><td>'+num(v.quilometragem)+' km</td><td>'+esc(v.unidade)+'</td><td>'+statusBadge(v.status)+'</td><td><button class="sec sm" onclick="modalViatura('+v.id+')">Editar</button> <button class="danger sm" onclick="delV('+v.id+')">Excluir</button></td></tr>').join('');
 }
-function stCnh(m){
-  if(!m.cnhValidade)return{label:'Sem info',cor:'info'};
-  const d=diasAte(m.cnhValidade);
-  if(d<0)return{label:'Vencida '+Math.abs(d)+'d',cor:'danger'};
-  if(d<=30)return{label:'Vence '+d+'d',cor:'warning'};
-  return{label:'Regular',cor:'success'};
-}
+function stCnh(m){if(!m.cnhValidade)return{label:'Sem info',cor:'info'};const d=diasAte(m.cnhValidade);if(d<0)return{label:'Vencida '+Math.abs(d)+'d',cor:'danger'};if(d<=30)return{label:'Vence '+d+'d',cor:'warning'};return{label:'Regular',cor:'success'};}
 function modalMotorista(id){
   const f=document.querySelector('#mMotorista form');f.reset();
   document.getElementById('motId').value='';
@@ -957,7 +1062,7 @@ function delAb(id){
 function renderAb(){
   const abs=S.abs();
   const gasto=totalGastoAb(),litros=totalLitrosAb();
-  const consumo=consumoMedioFrota(),ckm=custoMedioKm();
+  const consumo=consumoMedioFrota(),ckm=custoMedioKmAb();
   const e1=document.getElementById('abGasto');if(e1)e1.textContent=moeda(gasto);
   const e2=document.getElementById('abLitros');if(e2)e2.textContent=num2(litros)+' L';
   const e3=document.getElementById('abConsumo');if(e3)e3.textContent=consumo?num2(consumo)+' km/l':'—';
@@ -998,13 +1103,7 @@ function renderAbCharts(){
   const vs=S.viats().map(v=>({n:v.numero,c:consumoViatura(v.id)})).filter(x=>x.c!=null);
   drawC('chAbConsumo','bar',{labels:vs.map(v=>v.n),datasets:[{label:'km/l',data:vs.map(v=>Number(v.c.toFixed(2))),backgroundColor:'#2ECC71'}]});
 }
-function stDoc(d){
-  if(!d.vencimento)return{label:'Sem info',cor:'info'};
-  const dias=diasAte(d.vencimento);
-  if(dias<0)return{label:'Vencido há '+Math.abs(dias)+'d',cor:'danger'};
-  if(dias<=30)return{label:'Vence em '+dias+'d',cor:'warning'};
-  return{label:'Regular',cor:'success'};
-}
+function stDoc(d){if(!d.vencimento)return{label:'Sem info',cor:'info'};const dias=diasAte(d.vencimento);if(dias<0)return{label:'Vencido há '+Math.abs(dias)+'d',cor:'danger'};if(dias<=30)return{label:'Vence em '+dias+'d',cor:'warning'};return{label:'Regular',cor:'success'};}
 function modalDocumento(id){
   const f=document.querySelector('#mDocumento form');f.reset();
   document.getElementById('docId').value='';
@@ -1178,7 +1277,7 @@ function renderHist(){
   if(!l.length){cont.innerHTML='<div class="empty"><i class="fas fa-history"></i>Nenhuma manutenção</div>';return;}
   cont.innerHTML=l.map(o=>{
     const v=S.viat(o.viaturaId);
-    return'<div class="titem"><div class="card" style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px"><div><strong>'+esc(o.numero)+' — '+esc(v?.numero||'removida')+'</strong><div style="font-size:12px;color:#666;margin-top:3px">'+esc(v?.placa||'-')+' • '+esc(v?.modelo||'-')+' • '+dt(o.data)+'</div></div><div style="text-align:right"><div style="font-size:16px;font-weight:700;color:var(--azul2)">'+moeda(o.custo)+'</div><small style="color:#999">'+(Number(o.tempoParada)||0)+'h</small></div></div><div style="margin-top:10px;font-size:13px"><div><strong>Serviço:</strong> '+esc(o.descricao)+'</div>'+(o.pecas&&o.pecas.length?'<div style="margin-top:5px"><strong>Peças:</strong> '+o.pecas.map(esc).join(', ')+'</div>':'')+'<div style="margin-top:5px;font-size:11px;color:#666"><strong>Resp.:</strong> '+esc(o.responsavel)+' • <strong>Tipo:</strong> '+esc(o.tipo)+' • <strong>KM:</strong> '+num(o.quilometragem)+'</div></div></div></div>';
+    return'<div class="titem"><div class="card" style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px"><div><strong>'+esc(o.numero)+' — '+esc(v?.numero||'removida')+'</strong><div style="font-size:12px;color:#666;margin-top:3px">'+esc(v?.placa||'-')+' • '+esc(v?.modelo||'-')+' • '+dt(o.data)+'</div></div><div style="text-align:right"><div style="font-size:16px;font-weight:700;color:var(--azul2)">'+moeda(o.custo)+'</div><small style="color:#999">'+(Number(o.tempoParada)||0)+'h</small></div></div><div style="margin-top:10px;font-size:13px"><div><strong>Serviço:</strong> '+esc(o.descricao)+'</div>'+(o.pecas&&o.pecas.length?'<div style="margin-top:5px"><strong>Peças:</strong> '+o.pecas.map(esc).join(', ')+'</div>':'')+'<div style="margin-top:5px;font-size:11px;color:#666"><strong>Resp.:</strong> '+esc(o.responsavel)+' · <strong>Tipo:</strong> '+esc(o.tipo)+' · <strong>KM:</strong> '+num(o.quilometragem)+'</div></div></div></div>';
   }).join('');
 }
 let charts={};
@@ -1191,7 +1290,7 @@ function renderDash(){
   document.getElementById('dOs').textContent=k.osAb;
   document.getElementById('dConc').textContent=k.osCo;
   document.getElementById('dCusto').textContent=moeda(k.custo);
-  document.getElementById('dAg').textContent=S.ags().filter(a=>a.data===hoje()&&a.status!=='Cancelado').length;
+  document.getElementById('dComb').textContent=moeda(totalGastoAb());
   renderAlertas();renderChartsDash();renderPrevDash();
 }
 function renderAlertas(){
@@ -1251,6 +1350,18 @@ function renderInd(){
   document.getElementById('kMttr').textContent=k.mttr.toFixed(1)+'h';
   document.getElementById('kMtbf').textContent=k.mtbf>0?k.mtbf.toFixed(1)+'d':'—';
   document.getElementById('kCusto').textContent=moeda(k.custoMed);
+  const custoTotalMan=k.custo, custoTotalComb=totalGastoAb();
+  const kmTotal=totalKmAb();
+  const custoKmTotal=kmTotal>0?(custoTotalMan+custoTotalComb)/kmTotal:null;
+  const e1=document.getElementById('kCustoKm');if(e1)e1.textContent=custoKmTotal?moeda(custoKmTotal):'—';
+  const e2=document.getElementById('kFalhas');if(e2)e2.textContent=db.ordensServico.filter(o=>o.status==='Concluída'&&(o.tipo==='Corretiva'||o.tipo==='Emergencial')).length;
+  const e3=document.getElementById('kPrev');if(e3)e3.textContent=db.ordensServico.filter(o=>o.status==='Concluída'&&o.tipo==='Preventiva').length;
+  const e4=document.getElementById('kCorr');if(e4)e4.textContent=db.ordensServico.filter(o=>o.status==='Concluída'&&(o.tipo==='Corretiva'||o.tipo==='Emergencial')).length;
+  const e5=document.getElementById('kParada');if(e5)e5.textContent=db.ordensServico.filter(o=>o.status==='Concluída').reduce((s,o)=>s+(Number(o.tempoParada)||0),0).toFixed(1)+'h';
+  const e6=document.getElementById('kConsumo');const cm=consumoMedioFrota();if(e6)e6.textContent=cm?num2(cm)+' km/l':'—';
+  const pp=preventivasNoPrazo();
+  const e7=document.getElementById('kPrevPrazo');if(e7)e7.textContent=pp?pp.pct.toFixed(0)+'%':'—';
+  const e8=document.getElementById('kUso');if(e8)e8.textContent=db.agendamentos.length;
   const a=new Date(),lb=[],dd=[];
   for(let i=5;i>=0;i--){const d=new Date(a.getFullYear(),a.getMonth()-i,1);lb.push(d.toLocaleDateString('pt-BR',{month:'short'}).replace('.',''));dd.push(k.disp);}
   drawC('chDisp','line',{labels:lb,datasets:[{label:'Disponibilidade (%)',data:dd,borderColor:'#2ECC71',backgroundColor:'rgba(46,204,113,.15)',tension:.3,fill:true}]});
@@ -1258,8 +1369,118 @@ function renderInd(){
   const cats={};co.forEach(o=>{const c=catFalha(o.descricao);cats[c]=(cats[c]||0)+1;});
   const cl=Object.keys(cats),cd=Object.values(cats);
   drawC('chFalhas','doughnut',{labels:cl.length?cl:['Sem dados'],datasets:[{data:cd.length?cd:[1],backgroundColor:['#E74C3C','#F39C12','#F4C430','#2ECC71','#1B4F72','#9B59B6']}]});
-  const cm=porMes(db.ordensServico.filter(o=>o.status==='Concluída'),6);
-  drawC('chCustos','bar',{labels:cm.map(m=>m.lb),datasets:[{label:'Custo (R$)',data:cm.map(m=>m.custo),backgroundColor:'#F39C12'}]});
+  const prev=db.ordensServico.filter(o=>o.status==='Concluída'&&o.tipo==='Preventiva').length;
+  const corr=co.length;
+  drawC('chPrevCorr','doughnut',{labels:['Preventivas','Corretivas'],datasets:[{data:[prev,corr],backgroundColor:['#2ECC71','#E74C3C']}]});
+  const vsComKm=db.viaturas.map(v=>({n:v.numero,c:custoTotalPorKm(v.id)})).filter(x=>x.c!=null);
+  drawC('chCustoKmVit','bar',{labels:vsComKm.map(v=>v.n),datasets:[{label:'R$/km',data:vsComKm.map(v=>Number(v.c.toFixed(2))),backgroundColor:'#9B59B6'}]});
+  const a2=new Date(),lb2=[],manM=[],combM=[];
+  for(let i=5;i>=0;i--){
+    const d=new Date(a2.getFullYear(),a2.getMonth()-i,1);
+    const lbm=d.toLocaleDateString('pt-BR',{month:'short'}).replace('.','');
+    const ini=new Date(d.getFullYear(),d.getMonth(),1);
+    const fim=new Date(d.getFullYear(),d.getMonth()+1,0,23,59,59);
+    const mOs=db.ordensServico.filter(o=>{if(o.status!=='Concluída')return false;const od=new Date(o.data+'T00:00:00');return od>=ini&&od<=fim;}).reduce((s,o)=>s+(Number(o.custo)||0),0);
+    const mAb=S.abs().filter(x=>{const xd=new Date(x.data+'T00:00:00');return xd>=ini&&xd<=fim;}).reduce((s,x)=>s+Number(x.valorTotal||0),0);
+    lb2.push(lbm);manM.push(mOs);combM.push(mAb);
+  }
+  drawC('chCustos','bar',{labels:lb2,datasets:[{label:'Manutenção (R$)',data:manM,backgroundColor:'#1B4F72'},{label:'Combustível (R$)',data:combM,backgroundColor:'#F39C12'}]});
+}
+function renderRelatorios(){
+  const prev=document.getElementById('previewRelatorio');
+  if(prev&&!prev.querySelector('table'))prev.innerHTML='<div class="empty"><i class="fas fa-file-alt"></i>Escolha um relatório acima para visualizar antes de exportar.</div>';
+}
+function dadosRelatorio(tipo){
+  const db=S.get();
+  if(tipo==='viaturas')return{
+    titulo:'Relatório de Viaturas',
+    cols:['Número','Placa','Modelo','Tipo','Ano','KM','Unidade','Status','Próxima Manut.'],
+    rows:db.viaturas.map(v=>[v.numero,v.placa,v.modelo,v.tipo||'',v.ano||'',v.quilometragem||0,v.unidade||'',v.status||'',v.proximaManutencaoData?dt(v.proximaManutencaoData):(v.proximaManutencaoKm?num(v.proximaManutencaoKm)+' km':'')])
+  };
+  if(tipo==='ordens')return{
+    titulo:'Relatório de Ordens de Serviço',
+    cols:['Número','Viatura','Placa','Tipo','Data','Responsável','Custo','Status'],
+    rows:db.ordensServico.map(o=>{const v=db.viaturas.find(x=>x.id===o.viaturaId);return[o.numero,v?.numero||'-',v?.placa||o.placa||'-',o.tipo||'',dt(o.data),o.responsavel||'',moeda(o.custo||0),o.status||'']})
+  };
+  if(tipo==='historico')return{
+    titulo:'Histórico de Manutenção (Ordens Concluídas)',
+    cols:['Número','Viatura','Placa','Tipo','Data','Serviço','Peças','Responsável','KM','Custo','Parada (h)'],
+    rows:db.ordensServico.filter(o=>o.status==='Concluída').map(o=>{const v=db.viaturas.find(x=>x.id===o.viaturaId);return[o.numero,v?.numero||'-',v?.placa||o.placa||'-',o.tipo||'',dt(o.data),o.descricao||'',(o.pecas||[]).join(', '),o.responsavel||'',num(o.quilometragem||0),moeda(o.custo||0),num(o.tempoParada||0)]})
+  };
+  if(tipo==='abastecimentos')return{
+    titulo:'Relatório de Abastecimentos',
+    cols:['Data','Viatura','Placa','Combustível','Litros','R$/L','Total','KM','Posto','Motorista'],
+    rows:db.abastecimentos.map(a=>[dt(a.data),a.viaturaNumero||'',a.viaturaPlaca||'',a.combustivel||'',num2(a.litros||0),moeda(a.valorLitro||0),moeda(a.valorTotal||0),num(a.quilometragem||0),a.posto||'',a.motoristaNome||''])
+  };
+  if(tipo==='motoristas')return{
+    titulo:'Relatório de Motoristas',
+    cols:['Nome','Matrícula','Categoria CNH','Validade CNH','Telefone','Unidade','Status'],
+    rows:db.motoristas.map(m=>[m.nome,m.matricula,m.cnhCategoria||'',dt(m.cnhValidade),m.telefone||'',m.unidade||'',m.status||''])
+  };
+  if(tipo==='agendamentos')return{
+    titulo:'Relatório de Agendamentos',
+    cols:['Viatura','Placa','Motorista','Data','Saída','Retorno','Destino','Finalidade','Unidade','Status'],
+    rows:db.agendamentos.map(a=>[a.viaturaNumero||'',a.viaturaPlaca||'',a.motoristaNome||'',dt(a.data),a.saida||'',a.retorno||'',a.destino||'',a.finalidade||'',a.unidadeSolicitante||'',a.status||''])
+  };
+  if(tipo==='documentos')return{
+    titulo:'Relatório de Documentação',
+    cols:['Viatura','Placa','Tipo','Descrição','Emissão','Vencimento','Status'],
+    rows:db.documentos.map(d=>{const s=stDoc(d);return[d.viaturaNumero||'',d.viaturaPlaca||'',d.tipo||'',d.descricao||'',dt(d.emissao),dt(d.vencimento),s.label]})
+  };
+  if(tipo==='custos')return{
+    titulo:'Relatório de Custos Consolidados por Viatura',
+    cols:['Viatura','Placa','KM Percorrida','Custo Manutenção','Custo Combustível','Custo Total','Custo por KM'],
+    rows:db.viaturas.map(v=>{const c=custoTotalViatura(v.id);const km=kmTotalViatura(v.id);const ckm=km>0?c.total/km:null;return[v.numero,v.placa,num(km),moeda(c.man),moeda(c.comb),moeda(c.total),ckm?moeda(ckm):'—']})
+  };
+  if(tipo==='disponibilidade')return{
+    titulo:'Relatório de Disponibilidade e Uso',
+    cols:['Viatura','Placa','Unidade','Status','KM','Total de OS','OS Preventivas','OS Corretivas','Agendamentos','Custo Total Manut.'],
+    rows:db.viaturas.map(v=>{
+      const ords=db.ordensServico.filter(o=>o.viaturaId===v.id);
+      const prev=ords.filter(o=>o.tipo==='Preventiva').length;
+      const corr=ords.filter(o=>o.tipo==='Corretiva'||o.tipo==='Emergencial').length;
+      const ags=db.agendamentos.filter(a=>a.viaturaId===v.id).length;
+      const custo=ords.filter(o=>o.status==='Concluída').reduce((s,o)=>s+(Number(o.custo)||0),0);
+      return[v.numero,v.placa,v.unidade||'',v.status||'',num(v.quilometragem||0),ords.length,prev,corr,ags,moeda(custo)];
+    })
+  };
+  return null;
+}
+function previewRelatorio(tipo){
+  const d=dadosRelatorio(tipo);
+  if(!d){toast('Relatório não encontrado','error');return;}
+  const prev=document.getElementById('previewRelatorio');
+  if(!d.rows.length){prev.innerHTML='<div class="empty"><i class="fas fa-inbox"></i>Sem dados para este relatório.</div>';return;}
+  const head=d.cols.map(c=>'<th>'+esc(c)+'</th>').join('');
+  const body=d.rows.slice(0,20).map(r=>'<tr>'+r.map(c=>'<td>'+esc(c)+'</td>').join('')+'</tr>').join('');
+  prev.innerHTML='<h4 style="margin:0 0 10px">'+esc(d.titulo)+'</h4>'+(d.rows.length>20?'<p style="font-size:12px;color:#666;margin-bottom:8px">Mostrando as 20 primeiras linhas de '+d.rows.length+'.</p>':'')+'<div style="overflow-x:auto"><table><thead><tr>'+head+'</tr></thead><tbody>'+body+'</tbody></table></div>';
+}
+function exportarCSV(tipo){
+  const d=dadosRelatorio(tipo);
+  if(!d){toast('Relatório não encontrado','error');return;}
+  if(!d.rows.length){toast('Sem dados para exportar','warning');return;}
+  const sep=';';
+  const csv=[d.cols.join(sep)].concat(d.rows.map(r=>r.map(c=>{const s=String(c==null?'':c);return s.indexOf(sep)>=0||s.indexOf('"')>=0?'"'+s.replace(/"/g,'""')+'"':s;}).join(sep))).join('\n');
+  const bom='\uFEFF';
+  const blob=new Blob([bom+csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='frotapm-'+tipo+'-'+hoje()+'.csv';
+  document.body.appendChild(a);a.click();a.remove();
+  URL.revokeObjectURL(url);
+  toast('CSV exportado!');
+}
+function imprimirRelatorio(tipo){
+  const d=dadosRelatorio(tipo);
+  if(!d){toast('Relatório não encontrado','error');return;}
+  if(!d.rows.length){toast('Sem dados para imprimir','warning');return;}
+  const head=d.cols.map(c=>'<th>'+esc(c)+'</th>').join('');
+  const body=d.rows.map(r=>'<tr>'+r.map(c=>'<td>'+esc(c)+'</td>').join('')+'</tr>').join('');
+  const html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+esc(d.titulo)+'</title><style>body{font-family:Inter,system-ui,sans-serif;padding:24px;color:#2C3E50}h1{font-size:20px;margin-bottom:4px}h2{font-size:13px;color:#666;margin-bottom:20px;font-weight:400}table{width:100%;border-collapse:collapse;font-size:11px}th{background:#F5F7FA;text-align:left;padding:8px;border-bottom:2px solid #ddd}td{padding:6px 8px;border-bottom:1px solid #eee}@media print{button{display:none}}</style></head><body><h1>Frota PM - Blumenau</h1><h2>'+esc(d.titulo)+' — Gerado em '+new Date().toLocaleString('pt-BR')+'</h2><table><thead><tr>'+head+'</tr></thead><tbody>'+body+'</tbody></table><div style="margin-top:20px;text-align:center"><button onclick="window.print()" style="padding:10px 24px;font-size:14px;background:#1B4F72;color:#fff;border:none;border-radius:8px;cursor:pointer">Imprimir / Salvar como PDF</button></div></body></html>';
+  const w=window.open('','_blank');
+  if(!w){toast('Habilite pop-ups para imprimir','warning');return;}
+  w.document.write(html);w.document.close();
+  setTimeout(()=>{try{w.print();}catch(e){}},600);
 }
 let map=null,markers={},layer=null;
 const layers={osm:()=>L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OSM'}),satellite:()=>L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'© Esri'}),terrain:()=>L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',{attribution:'© OTM'})};
@@ -1299,7 +1520,7 @@ function renderMapList(){
     const tc=typeof v.latitude==='number'&&typeof v.longitude==='number';
     const ic=tc?'📍':'⚠';
     const cor=v.status==='Operacional'?'#2ECC71':v.status==='Em Manutenção'?'#F39C12':'#E74C3C';
-    return'<div class="vitem" style="border-left-color:'+cor+'" onclick="focusV('+v.id+')"><strong>'+esc(v.numero)+' '+ic+'</strong><small>'+esc(v.placa)+' • '+esc(v.modelo)+'<br>KM: '+num(v.quilometragem)+' • '+esc(v.unidade)+(tc?(v.endereco?'<br>'+esc(v.endereco):''):'<br><em style="color:#E74C3C">Sem endereço</em>')+'</small></div>';
+    return'<div class="vitem" style="border-left-color:'+cor+'" onclick="focusV('+v.id+')"><strong>'+esc(v.numero)+' '+ic+'</strong><small>'+esc(v.placa)+' · '+esc(v.modelo)+'<br>KM: '+num(v.quilometragem)+' · '+esc(v.unidade)+(tc?(v.endereco?'<br>'+esc(v.endereco):''):'<br><em style="color:#E74C3C">Sem endereço</em>')+'</small></div>';
   }).join('');
 }
 function focusV(id){if(markers[id]){const ll=markers[id].getLatLng();map.setView(ll,15);markers[id].openPopup();}else toast('Sem endereço cadastrado','warning');}
@@ -1368,7 +1589,7 @@ function renderPreve(){
   const pl=document.getElementById('pvPrior');
   const pr=a.filter(x=>x.n==='Crítico'||x.n==='Alto').slice(0,5);
   if(!pr.length)pl.innerHTML='<div class="empty"><i class="fas fa-check-circle"></i>Nada a priorizar</div>';
-  else pl.innerHTML=pr.map((x,i)=>'<div class="card" style="margin-bottom:10px;border-left:4px solid '+(x.n==='Crítico'?'var(--verm)':'var(--laranja)')+'"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px"><div><strong style="font-size:15px">PRIORIDADE '+(i+1)+' — '+esc(x.viatura.numero)+'</strong><div style="font-size:12px;color:#666;margin-top:3px">'+esc(x.viatura.placa)+' • '+esc(x.viatura.modelo)+' • '+esc(x.viatura.unidade)+'</div></div><div style="text-align:right"><div style="font-size:22px;font-weight:700;color:'+(x.n==='Crítico'?'var(--verm)':'var(--laranja)')+'">'+x.sc+'</div><small style="color:#999">pts</small></div></div><div style="margin-top:8px;font-size:12px"><strong>Motivos:</strong><ul style="margin:5px 0 0 18px">'+(x.mt.length?x.mt.map(m=>'<li>'+esc(m)+'</li>').join(''):'<li>Sem fatores</li>')+'</ul></div><div class="alert info" style="margin-top:10px;margin-bottom:0"><strong>Recomendação</strong><p>'+esc(x.recom)+'</p></div></div>').join('');
+  else pl.innerHTML=pr.map((x,i)=>'<div class="card" style="margin-bottom:10px;border-left:4px solid '+(x.n==='Crítico'?'var(--verm)':'var(--laranja)')+'"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px"><div><strong style="font-size:15px">PRIORIDADE '+(i+1)+' — '+esc(x.viatura.numero)+'</strong><div style="font-size:12px;color:#666;margin-top:3px">'+esc(x.viatura.placa)+' · '+esc(x.viatura.modelo)+' · '+esc(x.viatura.unidade)+'</div></div><div style="text-align:right"><div style="font-size:22px;font-weight:700;color:'+(x.n==='Crítico'?'var(--verm)':'var(--laranja)')+'">'+x.sc+'</div><small style="color:#999">pts</small></div></div><div style="margin-top:8px;font-size:12px"><strong>Motivos:</strong><ul style="margin:5px 0 0 18px">'+(x.mt.length?x.mt.map(m=>'<li>'+esc(m)+'</li>').join(''):'<li>Sem fatores</li>')+'</ul></div><div class="alert info" style="margin-top:10px;margin-bottom:0"><strong>Recomendação</strong><p>'+esc(x.recom)+'</p></div></div>').join('');
 }
 function renderPrevDash(){
   const r=resumoPrev(),s=saudeFrota();
@@ -1382,7 +1603,7 @@ function iaMsg(au,tx){const c=document.getElementById('iaChat');if(!c)return;con
 function toggleIA(){
   const m=document.getElementById('iaModal');
   if(m.classList.contains('on'))closeM('iaModal');
-  else{openM('iaModal');const c=document.getElementById('iaChat');if(!c.children.length)iaMsg('ia','Olá! Sou a Frota IA. Posso responder sobre viaturas, manutenções, motoristas, agendamentos, abastecimento, documentos, custos e riscos. Use uma sugestão ou digite.');setTimeout(()=>document.getElementById('iaInput')?.focus(),200);}
+  else{openM('iaModal');const c=document.getElementById('iaChat');if(!c.children.length)iaMsg('ia','Olá! Sou a Frota IA. Posso responder sobre viaturas, manutenções, motoristas, agendamentos, abastecimento, documentos, custos, relatórios e riscos. Use uma sugestão ou digite.');setTimeout(()=>document.getElementById('iaInput')?.focus(),200);}
 }
 function pergRap(t){const i=document.getElementById('iaInput');if(!i)return;i.value=t;enviarPerg({preventDefault:()=>{}});}
 function enviarPerg(e){if(e&&e.preventDefault)e.preventDefault();const i=document.getElementById('iaInput');if(!i)return;const p=i.value.trim();if(!p)return;iaMsg('user',p);i.value='';setTimeout(()=>iaMsg('ia',responder(p)),200);}
@@ -1395,37 +1616,31 @@ function responder(p){
   if(/precisam?.*manuten|manuten.*esta semana/i.test(q)){const e=an.filter(x=>x.sc>=25);if(!e.length)return'Nenhuma precisa de manutenção.';return e.length+' veículo(s) precisam de atenção:\n\n'+e.slice(0,8).map(x=>'• '+x.viatura.numero+' — '+x.n+' ('+x.sc+'/100)\n   '+(x.mt[0]||'')).join('\n\n');}
   if(/qual.*retirar|qual.*priorizar|prioridade/i.test(q)){const t=an[0];if(!t||t.sc<25)return'Nada a priorizar.';return t.viatura.numero+' deve ser priorizada.\n\nRisco: '+t.sc+'/100 ('+t.n+')\n\nMotivos:\n'+t.mt.map(m=>'• '+m).join('\n')+'\n\nRecomendação: '+t.recom+'.';}
   if(/risco alto|risco cr[íi]tico/i.test(q)){const e=an.filter(x=>x.n==='Alto'||x.n==='Crítico');if(!e.length)return'Nenhuma em risco alto/crítico.';return e.length+' viatura(s):\n\n'+e.map(x=>'• '+x.viatura.numero+' — '+x.n+' ('+x.sc+'/100)').join('\n');}
-  if(/combust[íi]vel|abastec|gasolina|diesel|etanol/i.test(q)){
+  if(/combust[íi]vel|abastec/i.test(q)){
     if(!abs.length)return'Nenhum abastecimento registrado.';
-    if(/gast|maior.*gast|quanto.*gast|gasto/i.test(q)){
-      const c=vs.map(v=>({v,tt:abs.filter(a=>a.viaturaId===v.id).reduce((s,a)=>s+Number(a.valorTotal||0),0)})).sort((a,b)=>b.tt-a.tt);
-      if(!c[0]||c[0].tt===0)return'Nenhum gasto registrado.';
-      return c[0].v.numero+' tem maior gasto com combustível: '+moeda(c[0].tt)+'.\n\nTotal da frota: '+moeda(totalGastoAb());
-    }
-    if(/consumo|m[ée]dio|km\/l|km por litro/i.test(q)){
-      const cf=consumoMedioFrota();
-      if(!cf)return'Ainda não há abastecimentos suficientes (mínimo 2 por viatura) para calcular o consumo médio.';
-      return'Consumo médio da frota: '+num2(cf)+' km/l';
-    }
+    if(/gast|maior.*gast|quanto.*gast/i.test(q)){const c=vs.map(v=>({v,tt:abs.filter(a=>a.viaturaId===v.id).reduce((s,a)=>s+Number(a.valorTotal||0),0)})).sort((a,b)=>b.tt-a.tt);if(!c[0]||c[0].tt===0)return'Nenhum gasto registrado.';return c[0].v.numero+' tem maior gasto com combustível: '+moeda(c[0].tt)+'.\n\nTotal da frota: '+moeda(totalGastoAb());}
+    if(/consumo|m[ée]dio|km\/l/i.test(q)){const cf=consumoMedioFrota();if(!cf)return'Ainda não há abastecimentos suficientes (mínimo 2 por viatura) para calcular o consumo médio.';return'Consumo médio da frota: '+num2(cf)+' km/l';}
     return'Total abastecido: '+num2(totalLitrosAb())+' L\nGasto total: '+moeda(totalGastoAb())+'\nAbastecimentos: '+abs.length;
   }
-  if(/documento|vencimento.*doc|doc.*venc/i.test(q)){const v=ds.filter(d=>{const s=stDoc(d);return s.cor==='warning'||s.cor==='danger';});if(!v.length)return'Nenhum documento em atenção.';return v.length+' documento(s):\n\n'+v.map(d=>'• '+d.viaturaNumero+' — '+d.tipo+' ('+stDoc(d).label+')').join('\n');}
-  if(/cnh|motorista.*venc|venc.*cnh/i.test(q)){const v=ms.filter(m=>{const s=stCnh(m);return s.cor==='warning'||s.cor==='danger';});if(!v.length)return'Nenhuma CNH em atenção.';return v.length+' CNH(s):\n\n'+v.map(m=>'• '+m.nome+' — '+stCnh(m).label).join('\n');}
+  if(/custo.*km|custo por quil[oô]metro/i.test(q)){const km=totalKmAb();const custo=(kpis(db).custo+totalGastoAb());if(km<=0)return'Sem KM suficientes para calcular.';return'Custo total por km da frota: '+moeda(custo/km);}
+  if(/documento|vencimento.*doc/i.test(q)){const v=ds.filter(d=>{const s=stDoc(d);return s.cor==='warning'||s.cor==='danger';});if(!v.length)return'Nenhum documento em atenção.';return v.length+' documento(s):\n\n'+v.map(d=>'• '+d.viaturaNumero+' — '+d.tipo+' ('+stDoc(d).label+')').join('\n');}
+  if(/cnh|motorista.*venc/i.test(q)){const v=ms.filter(m=>{const s=stCnh(m);return s.cor==='warning'||s.cor==='danger';});if(!v.length)return'Nenhuma CNH em atenção.';return v.length+' CNH(s):\n\n'+v.map(m=>'• '+m.nome+' — '+stCnh(m).label).join('\n');}
   if(/disponibilidade|sa[úu]de|como est[áa].*frota/i.test(q)){const k=kpis(db),s=saudeFrota();return'Disponibilidade: '+k.disp.toFixed(1)+'%\n'+(s?('Saúde: '+s.pct+'% ('+s.lb+')\n'):'')+'\n• Total: '+k.tot+'\n• Operacionais: '+k.op+'\n• Manutenção: '+k.man+'\n• Indisponíveis: '+k.ind;}
   if(/indispon|paradas|parados/i.test(q)){const i=vs.filter(v=>v.status==='Indisponível'||v.status==='Em Manutenção');if(!i.length)return'Nenhuma viatura indisponível.';return i.length+' viatura(s):\n\n'+i.map(v=>'• '+v.numero+' — '+v.status).join('\n');}
   if(/dispon[íi]ve(i)?s?( hoje)?/i.test(q)){const dispon=vs.filter(v=>v.status==='Operacional');if(!dispon.length)return'Nenhuma viatura operacional.';return dispon.length+' viatura(s) operacional(is):\n\n'+dispon.slice(0,15).map(v=>'• '+v.numero+' ('+v.placa+')').join('\n');}
   if(/agendad.*hoje|agenda.*hoje/i.test(q)){const ag=as.filter(a=>a.data===hoje()&&a.status!=='Cancelado');if(!ag.length)return'Nenhum agendamento hoje.';return ag.length+' agendamento(s) hoje:\n\n'+ag.map(a=>'• '+a.viaturaNumero+' — '+a.saida+' às '+a.retorno+'\n   '+a.motoristaNome+' → '+a.destino).join('\n\n');}
-  if(/agendamento|agendad/i.test(q)){if(!as.length)return'Nenhum agendamento cadastrado.';return'Total de agendamentos: '+as.length+'\n• Solicitados: '+as.filter(a=>a.status==='Solicitado').length+'\n• Aprovados: '+as.filter(a=>a.status==='Aprovado').length+'\n• Em uso: '+as.filter(a=>a.status==='Em uso').length+'\n• Finalizados: '+as.filter(a=>a.status==='Finalizado').length;}
   if(/mais falhas|maior.*falha/i.test(q)){const c=vs.map(v=>({v,ct:os.filter(o=>o.viaturaId===v.id&&(o.tipo==='Corretiva'||o.tipo==='Emergencial')&&o.status==='Concluída').length})).sort((a,b)=>b.ct-a.ct);if(!c[0]||c[0].ct===0)return'Nenhuma corretiva registrada.';return c[0].v.numero+' tem mais corretivas: '+c[0].ct+' registro(s).';}
-  if(/maior custo|mais caro|gasta mais/i.test(q)){const c=vs.map(v=>({v,tt:os.filter(o=>o.viaturaId===v.id&&o.status==='Concluída').reduce((s,o)=>s+(Number(o.custo)||0),0)})).sort((a,b)=>b.tt-a.tt);if(!c[0]||c[0].tt===0)return'Nenhum custo registrado.';return c[0].v.numero+' tem maior custo: '+moeda(c[0].tt)+'.';}
+  if(/maior custo|mais caro|gasta mais/i.test(q)){const c=vs.map(v=>({v,tt:os.filter(o=>o.viaturaId===v.id&&o.status==='Concluída').reduce((s,o)=>s+(Number(o.custo)||0),0)})).sort((a,b)=>b.tt-a.tt);if(!c[0]||c[0].tt===0)return'Nenhum custo registrado.';return c[0].v.numero+' tem maior custo de manutenção: '+moeda(c[0].tt)+'.';}
   if(/atrasad/i.test(q)){const at=vs.filter(v=>{if(v.proximaManutencaoData&&new Date(v.proximaManutencaoData+'T00:00:00')<new Date())return true;if(v.proximaManutencaoKm&&v.quilometragem>=v.proximaManutencaoKm)return true;return false;});if(!at.length)return'Nenhuma com manutenção atrasada.';return at.length+' viatura(s):\n\n'+at.map(v=>'• '+v.numero+' ('+v.placa+')').join('\n');}
   if(/tipo.*falha|falha.*frequente/i.test(q)){const cats={};os.filter(o=>o.status==='Concluída'&&(o.tipo==='Corretiva'||o.tipo==='Emergencial')).forEach(o=>{const c=catFalha(o.descricao);cats[c]=(cats[c]||0)+1;});const s=Object.entries(cats).sort((a,b)=>b[1]-a[1]);if(!s.length)return'Nenhuma corretiva registrada.';return'Falha mais frequente: '+s[0][0]+' ('+s[0][1]+'x).';}
   if(/quantos|quantas.*motorista/i.test(q))return ms.length+' motorista(s) cadastrado(s).';
   if(/quantas.*viatura|total.*viatura/i.test(q))return vs.length+' viatura(s) cadastrada(s).';
-  if(/quantas.*manuten|total.*manuten|quantas.*os/i.test(q)){const conc=os.filter(o=>o.status==='Concluída').length;const ab=os.filter(o=>['Agendada','Em andamento'].includes(o.status)).length;return'Total de ordens: '+os.length+'\n• Concluídas: '+conc+'\n• Abertas: '+ab;}
-  if(/custo total|gasto total|quanto.*gast/i.test(q)){const k=kpis(db);return'Custo total de manutenção: '+moeda(k.custo)+'.\nCusto total de combustível: '+moeda(totalGastoAb())+'.';}
-  if(/cr[íi]tic|top.*risco|mais.*risco/i.test(q)){const top=an.slice(0,5);return'Mais críticas:\n\n'+top.map((x,i)=>(i+1)+'. '+x.viatura.numero+' — '+x.n+' ('+x.sc+'/100)').join('\n');}
-  if(/ajuda|help|pode|comandos/i.test(q))return'Posso responder:\n\n• Quais veículos precisam de manutenção esta semana?\n• Qual veículo devo priorizar?\n• Quais veículos estão em risco alto?\n• Qual veículo gasta mais combustível?\n• Qual o consumo médio da frota?\n• Quais viaturas estão agendadas hoje?\n• Quais veículos estão disponíveis hoje?\n• Quais documentos estão próximos do vencimento?\n• Quais CNHs estão próximas do vencimento?\n• Como está a disponibilidade da frota?';
+  if(/quantas.*manuten|quantas.*os/i.test(q)){const conc=os.filter(o=>o.status==='Concluída').length;const ab=os.filter(o=>['Agendada','Em andamento'].includes(o.status)).length;return'Total de ordens: '+os.length+'\n• Concluídas: '+conc+'\n• Abertas: '+ab;}
+  if(/preventiv.*prazo/i.test(q)){const pp=preventivasNoPrazo();if(!pp)return'Nenhuma preventiva concluída.';return'Preventivas no prazo: '+pp.pct.toFixed(0)+'% ('+pp.noPrazo+' de '+pp.total+')';}
+  if(/custo total|gasto total/i.test(q)){const k=kpis(db);return'Manutenção: '+moeda(k.custo)+'\nCombustível: '+moeda(totalGastoAb())+'\nTotal: '+moeda(k.custo+totalGastoAb());}
+  if(/relat[óo]rio|exportar|csv/i.test(q))return'Vá em Relatórios no menu lateral. Lá você exporta CSV ou imprime/PDF de: Viaturas, Ordens, Histórico, Abastecimentos, Motoristas, Agendamentos, Documentação, Custos e Disponibilidade.';
+  if(/cr[íi]tic|top.*risco/i.test(q)){const top=an.slice(0,5);return'Mais críticas:\n\n'+top.map((x,i)=>(i+1)+'. '+x.viatura.numero+' — '+x.n+' ('+x.sc+'/100)').join('\n');}
+  if(/ajuda|help|pode|comandos/i.test(q))return'Posso responder:\n\n• Quais veículos precisam de manutenção esta semana?\n• Qual veículo devo priorizar?\n• Qual veículo gasta mais combustível?\n• Qual o consumo médio da frota?\n• Qual o custo por km da frota?\n• Quais viaturas estão agendadas hoje?\n• Quais documentos estão próximos do vencimento?\n• Quais CNHs estão próximas do vencimento?\n• Qual o % de preventivas no prazo?\n• Como está a disponibilidade da frota?\n• Como exporto relatórios?';
   return'Não entendi. Digite "ajuda" para ver o que posso responder.';
 }
 document.addEventListener('DOMContentLoaded',()=>{
@@ -1454,6 +1669,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(ativo==='ordens')renderOrd();
     if(ativo==='historico')renderHist();
     if(ativo==='indicadores')renderInd();
+    if(ativo==='relatorios')renderRelatorios();
     if(ativo==='preve')renderPreve();
     if(ativo==='rastreamento'){renderMapMarks();renderMapList();}
     atualizaPrev();
