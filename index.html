@@ -310,7 +310,7 @@ tr:hover{background:#f9f9f9}
 <div id="kmResumoViatura"></div>
 <div class="card">
 <h3 style="margin-bottom:12px">Histórico de Leituras</h3>
-<table><thead><tr><th>Data</th><th>Viatura</th><th>KM</th><th>Diferença</th><th>Origem</th><th>Motorista</th><th>Observação</th><th>Ações</th></tr></thead><tbody id="kmTable"></tbody></table>
+<table><thead><tr><th>Data</th><th>Viatura</th><th>KM</th><th>Diferença</th><th>Dias desde ant.</th><th>Média km/dia</th><th>Origem</th><th>Motorista</th><th>Observação</th><th>Ações</th></tr></thead><tbody id="kmTable"></tbody></table>
 </div>
 </div>
 
@@ -1293,12 +1293,24 @@ function renderKm(){
   if(di)l=l.filter(x=>x.data>=di);
   if(df)l=l.filter(x=>x.data<=df);
   l=l.sort((a,b)=>new Date(b.data)-new Date(a.data));
-  if(!l.length){tb.innerHTML='<tr><td colspan="8"><div class="empty"><i class="fas fa-tachometer-alt"></i>Nenhuma leitura registrada</div></td></tr>';return;}
+  if(!l.length){tb.innerHTML='<tr><td colspan="10"><div class="empty"><i class="fas fa-tachometer-alt"></i>Nenhuma leitura registrada</div></td></tr>';return;}
   tb.innerHTML=l.map(x=>{
     const anterior=leiturasViatura(x.viaturaId).filter(y=>new Date(y.data)<new Date(x.data)||(y.data===x.data&&y.id<x.id)).slice(-1)[0];
-    const dif=anterior?Number(x.quilometragem)-Number(anterior.quilometragem):null;
+    let difTxt='<span class="badge info" title="Primeira leitura desta viatura — ainda não há leitura anterior para comparar">1ª leitura</span>';
+    let diasTxt='<span style="color:#999">—</span>';
+    let mediaTxt='<span style="color:#999">—</span>';
+    if(anterior){
+      const dif=Number(x.quilometragem)-Number(anterior.quilometragem);
+      const dias=Math.max(0,Math.round((new Date(x.data)-new Date(anterior.data))/86400000));
+      const media=dias>0?dif/dias:null;
+      const cor=dif>0?'var(--verde)':(dif<0?'var(--verm)':'#999');
+      const sinal=dif>0?'+':(dif<0?'':'');
+      difTxt='<strong style="color:'+cor+'" title="'+num(anterior.quilometragem)+' km em '+dt(anterior.data)+' → '+num(x.quilometragem)+' km em '+dt(x.data)+'">'+sinal+num(dif)+' km</strong>';
+      diasTxt=dias+' dia'+(dias!==1?'s':'');
+      if(media!=null)mediaTxt=media.toFixed(1)+' km/dia';
+    }
     const badgeOrigem=x.origem==='Manual'?'info':(x.origem==='Abastecimento'?'success':(x.origem==='Cadastro de Viatura'?'warning':'info'));
-    return'<tr><td>'+dt(x.data)+'</td><td><strong>'+esc(x.viaturaNumero)+'</strong><br><small style="color:#666">'+esc(x.viaturaPlaca)+'</small></td><td><strong>'+num(x.quilometragem)+' km</strong></td><td>'+(dif!=null?(dif>=0?'+':'')+num(dif)+' km':'—')+'</td><td><span class="badge '+badgeOrigem+'">'+esc(x.origem||'Manual')+'</span></td><td>'+esc(x.motoristaNome||'-')+'</td><td>'+esc(x.observacoes||'-')+'</td><td><button class="sec sm" onclick="modalLeitura('+x.id+')">Editar</button> <button class="danger sm" onclick="delLe('+x.id+')">Excluir</button></td></tr>';
+    return'<tr><td>'+dt(x.data)+'</td><td><strong>'+esc(x.viaturaNumero)+'</strong><br><small style="color:#666">'+esc(x.viaturaPlaca)+'</small></td><td><strong>'+num(x.quilometragem)+' km</strong></td><td>'+difTxt+'</td><td>'+diasTxt+'</td><td>'+mediaTxt+'</td><td><span class="badge '+badgeOrigem+'">'+esc(x.origem||'Manual')+'</span></td><td>'+esc(x.motoristaNome||'-')+'</td><td>'+esc(x.observacoes||'-')+'</td><td><button class="sec sm" onclick="modalLeitura('+x.id+')">Editar</button> <button class="danger sm" onclick="delLe('+x.id+')">Excluir</button></td></tr>';
   }).join('');
 }
 function stDoc(d){if(!d.vencimento)return{label:'Sem info',cor:'info'};const dias=diasAte(d.vencimento);if(dias<0)return{label:'Vencido há '+Math.abs(dias)+'d',cor:'danger'};if(dias<=30)return{label:'Vence em '+dias+'d',cor:'warning'};return{label:'Regular',cor:'success'};}
@@ -1622,7 +1634,7 @@ function dadosRelatorio(tipo){
   if(tipo==='ordens')return{titulo:'Relatório de Ordens de Serviço',cols:['Número','Viatura','Placa','Tipo','Data','Responsável','Custo','Status'],rows:db.ordensServico.map(o=>{const v=db.viaturas.find(x=>x.id===o.viaturaId);return[o.numero,v?.numero||'-',v?.placa||o.placa||'-',o.tipo||'',dt(o.data),o.responsavel||'',moeda(o.custo||0),o.status||'']})};
   if(tipo==='historico')return{titulo:'Histórico de Manutenção (Ordens Concluídas)',cols:['Número','Viatura','Placa','Tipo','Data','Serviço','Peças','Responsável','KM','Custo','Parada (h)'],rows:db.ordensServico.filter(o=>o.status==='Concluída').map(o=>{const v=db.viaturas.find(x=>x.id===o.viaturaId);return[o.numero,v?.numero||'-',v?.placa||o.placa||'-',o.tipo||'',dt(o.data),o.descricao||'',(o.pecas||[]).join(', '),o.responsavel||'',num(o.quilometragem||0),moeda(o.custo||0),num(o.tempoParada||0)]})};
   if(tipo==='abastecimentos')return{titulo:'Relatório de Abastecimentos',cols:['Data','Viatura','Placa','Combustível','Litros','R$/L','Total','KM','Posto','Motorista'],rows:db.abastecimentos.map(a=>[dt(a.data),a.viaturaNumero||'',a.viaturaPlaca||'',a.combustivel||'',num2(a.litros||0),moeda(a.valorLitro||0),moeda(a.valorTotal||0),num(a.quilometragem||0),a.posto||'',a.motoristaNome||''])};
-  if(tipo==='quilometragem')return{titulo:'Relatório de Quilometragem',cols:['Data','Viatura','Placa','KM','Diferença','Origem','Motorista','Observação'],rows:db.leituras.slice().sort((a,b)=>new Date(b.data)-new Date(a.data)).map(l=>{const anterior=db.leituras.filter(x=>x.viaturaId===l.viaturaId).sort((a,b)=>new Date(a.data)-new Date(b.data)).filter(x=>new Date(x.data)<new Date(l.data)).slice(-1)[0];const dif=anterior?Number(l.quilometragem)-Number(anterior.quilometragem):null;return[dt(l.data),l.viaturaNumero||'',l.viaturaPlaca||'',num(l.quilometragem||0),dif!=null?(dif>=0?'+':'')+num(dif)+' km':'—',l.origem||'Manual',l.motoristaNome||'',l.observacoes||''];})};
+  if(tipo==='quilometragem')return{titulo:'Relatório de Quilometragem',cols:['Data','Viatura','Placa','KM','Diferença','Origem','Motorista','Observação'],rows:db.leituras.slice().sort((a,b)=>new Date(b.data)-new Date(a.data)).map(l=>{const anterior=db.leituras.filter(x=>x.viaturaId===l.viaturaId).sort((a,b)=>new Date(a.data)-new Date(b.data)).filter(x=>new Date(x.data)<new Date(l.data)).slice(-1)[0];const dif=anterior?Number(l.quilometragem)-Number(anterior.quilometragem):null;return[dt(l.data),l.viaturaNumero||'',l.viaturaPlaca||'',num(l.quilometragem||0),dif!=null?(dif>=0?'+':'')+num(dif)+' km':'1ª leitura',l.origem||'Manual',l.motoristaNome||'',l.observacoes||''];})};
   if(tipo==='motoristas')return{titulo:'Relatório de Motoristas',cols:['Nome','Matrícula','Categoria CNH','Validade CNH','Telefone','Unidade','Status'],rows:db.motoristas.map(m=>[m.nome,m.matricula,m.cnhCategoria||'',dt(m.cnhValidade),m.telefone||'',m.unidade||'',m.status||''])};
   if(tipo==='agendamentos')return{titulo:'Relatório de Agendamentos',cols:['Viatura','Placa','Motorista','Data','Saída','Retorno','Destino','Finalidade','Unidade','Status'],rows:db.agendamentos.map(a=>[a.viaturaNumero||'',a.viaturaPlaca||'',a.motoristaNome||'',dt(a.data),a.saida||'',a.retorno||'',a.destino||'',a.finalidade||'',a.unidadeSolicitante||'',a.status||''])};
   if(tipo==='documentos')return{titulo:'Relatório de Documentação',cols:['Viatura','Placa','Tipo','Descrição','Emissão','Vencimento','Status'],rows:db.documentos.map(d=>{const s=stDoc(d);return[d.viaturaNumero||'',d.viaturaPlaca||'',d.tipo||'',d.descricao||'',dt(d.emissao),dt(d.vencimento),s.label]})};
