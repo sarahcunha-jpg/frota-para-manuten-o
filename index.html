@@ -17,8 +17,8 @@ html,body,#app{height:100%;width:100%}
 .sidebar{width:280px;background:var(--azul);color:#fff;padding:20px;overflow-y:auto;position:fixed;left:0;top:0;height:100dvh;z-index:1000;transition:transform .3s}
 .sidebar-logo{font-size:22px;font-weight:700;margin-bottom:25px;display:flex;align-items:center;gap:10px}
 .sidebar-menu{list-style:none}
-.sidebar-menu li{margin:6px 0}
-.sidebar-menu a{color:#fff;text-decoration:none;display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:8px;cursor:pointer;font-size:14px;min-height:42px}
+.sidebar-menu li{margin:5px 0}
+.sidebar-menu a{color:#fff;text-decoration:none;display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;cursor:pointer;font-size:14px;min-height:40px}
 .sidebar-menu a:hover,.sidebar-menu a.active{background:var(--azul2);color:var(--ouro)}
 .sidebar-profile{position:absolute;bottom:15px;left:15px;right:15px;padding-top:15px;border-top:1px solid rgba(255,255,255,.2);display:flex;align-items:center;gap:10px}
 .avatar{width:38px;height:38px;border-radius:50%;background:var(--ouro);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--azul)}
@@ -139,6 +139,7 @@ tr:hover{background:#f9f9f9}
 <li><a onclick="go('motoristas')" class="ml" data-p="motoristas"><i class="fas fa-id-card"></i><span>Motoristas</span></a></li>
 <li><a onclick="go('agendamento')" class="ml" data-p="agendamento"><i class="fas fa-calendar-alt"></i><span>Agendamento</span></a></li>
 <li><a onclick="go('abastecimento')" class="ml" data-p="abastecimento"><i class="fas fa-gas-pump"></i><span>Abastecimento</span></a></li>
+<li><a onclick="go('quilometragem')" class="ml" data-p="quilometragem"><i class="fas fa-tachometer-alt"></i><span>Quilometragem</span></a></li>
 <li><a onclick="go('documentos')" class="ml" data-p="documentos"><i class="fas fa-file-alt"></i><span>Documentação</span></a></li>
 <li><a onclick="go('ordens')" class="ml" data-p="ordens"><i class="fas fa-list"></i><span>Ordens de Serviço</span></a></li>
 <li><a onclick="go('historico')" class="ml" data-p="historico"><i class="fas fa-history"></i><span>Histórico</span></a></li>
@@ -285,6 +286,31 @@ tr:hover{background:#f9f9f9}
 </div>
 </div>
 
+<div id="quilometragem" class="page">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+<h1 style="font-size:24px">Quilometragem</h1>
+<button onclick="modalLeitura()"><i class="fas fa-plus"></i> Nova Leitura</button>
+</div>
+<div class="stats">
+<div class="stat"><div class="stat-val" id="kmTotalLeituras">0</div><div class="stat-lb">Total de Leituras</div></div>
+<div class="stat ok"><div class="stat-val" id="kmRodado30">0 km</div><div class="stat-lb">KM Rodado (últimos 30 dias)</div></div>
+<div class="stat warn"><div class="stat-val" id="kmAlertas">0</div><div class="stat-lb">Viaturas com Aviso de KM</div></div>
+<div class="stat roxo"><div class="stat-val" id="kmMediaFrota">—</div><div class="stat-lb">Média KM/Mês (Frota)</div></div>
+</div>
+<div class="card">
+<div class="filters">
+<select id="kmVit"><option value="">Todas as Viaturas</option></select>
+<input type="date" id="kmIni">
+<input type="date" id="kmFim">
+</div>
+</div>
+<div id="kmResumoViatura"></div>
+<div class="card">
+<h3 style="margin-bottom:12px">Histórico de Leituras</h3>
+<table><thead><tr><th>Data</th><th>Viatura</th><th>KM</th><th>Diferença</th><th>Motorista</th><th>Observação</th><th>Ações</th></tr></thead><tbody id="kmTable"></tbody></table>
+</div>
+</div>
+
 <div id="documentos" class="page">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
 <h1 style="font-size:24px">Documentação das Viaturas</h1>
@@ -416,6 +442,11 @@ tr:hover{background:#f9f9f9}
 <div class="btns"><button class="ok sm" onclick="exportarCSV('abastecimentos')">Exportar CSV</button><button class="sec sm btn-print" onclick="imprimirRelatorio('abastecimentos')">Imprimir / PDF</button></div>
 </div>
 <div class="rep-item">
+<h4>Quilometragem</h4>
+<p>Histórico de leituras de odômetro com diferença entre leituras.</p>
+<div class="btns"><button class="ok sm" onclick="exportarCSV('quilometragem')">Exportar CSV</button><button class="sec sm btn-print" onclick="imprimirRelatorio('quilometragem')">Imprimir / PDF</button></div>
+</div>
+<div class="rep-item">
 <h4>Motoristas</h4>
 <p>Nome, matrícula, categoria CNH, validade, telefone e status.</p>
 <div class="btns"><button class="ok sm" onclick="exportarCSV('motoristas')">Exportar CSV</button><button class="sec sm btn-print" onclick="imprimirRelatorio('motoristas')">Imprimir / PDF</button></div>
@@ -529,6 +560,18 @@ tr:hover{background:#f9f9f9}
 </form>
 </div></div>
 
+<div id="mLeitura" class="modal"><div class="mc">
+<div class="mh"><h3 id="mLeituraTitle">Nova Leitura de Odômetro</h3><button class="mx" onclick="closeM('mLeitura')">×</button></div>
+<form onsubmit="salvarLeitura(event)">
+<input type="hidden" id="leId">
+<div class="fr"><div class="fg"><label>Viatura *</label><select id="leVit" required></select></div><div class="fg"><label>Data *</label><input type="date" id="leData" required></div></div>
+<div class="fr"><div class="fg"><label>Quilometragem *</label><input type="number" id="leKm" min="0" required></div><div class="fg"><label>Motorista</label><select id="leMot"><option value="">— Não informado —</option></select></div></div>
+<div class="fg"><label>Observação</label><textarea id="leObs" placeholder="Ex: Leitura após retorno de viagem"></textarea></div>
+<div id="leAviso"></div>
+<div class="btns"><button type="submit" style="flex:1">Salvar</button><button type="button" class="sec" style="flex:1" onclick="closeM('mLeitura')">Cancelar</button></div>
+</form>
+</div></div>
+
 <div id="mDocumento" class="modal"><div class="mc">
 <div class="mh"><h3 id="mDocTitle">Novo Documento</h3><button class="mx" onclick="closeM('mDocumento')">×</button></div>
 <form onsubmit="salvarDocumento(event)">
@@ -574,7 +617,7 @@ tr:hover{background:#f9f9f9}
 <button class="sec sm" onclick="pergRap('Quais veículos estão disponíveis hoje?')">Disponíveis</button>
 <button class="sec sm" onclick="pergRap('Qual veículo gasta mais combustível?')">Combustível</button>
 <button class="sec sm" onclick="pergRap('Qual o consumo médio da frota?')">Consumo</button>
-<button class="sec sm" onclick="pergRap('Quais documentos estão próximos do vencimento?')">Documentos</button>
+<button class="sec sm" onclick="pergRap('Qual a média de km por dia da frota?')">KM/dia</button>
 <button class="sec sm" onclick="pergRap('Qual veículo devo priorizar?')">Prioridade</button>
 </div></div>
 <form onsubmit="enviarPerg(event)" style="display:flex;gap:6px;flex-wrap:wrap">
@@ -586,11 +629,11 @@ tr:hover{background:#f9f9f9}
 <div id="toasts"></div>
 
 <script>
-const DBK='frotapm_db',DBV=7;
-const EMPTY={version:DBV,viaturas:[],ordensServico:[],motoristas:[],agendamentos:[],documentos:[],abastecimentos:[]};
+const DBK='frotapm_db',DBV=8;
+const EMPTY={version:DBV,viaturas:[],ordensServico:[],motoristas:[],agendamentos:[],documentos:[],abastecimentos:[],leituras:[]};
 function mig(d){
   if(!d||typeof d!=='object')return JSON.parse(JSON.stringify(EMPTY));
-  ['viaturas','ordensServico','motoristas','agendamentos','documentos','abastecimentos'].forEach(k=>{if(!Array.isArray(d[k]))d[k]=[];});
+  ['viaturas','ordensServico','motoristas','agendamentos','documentos','abastecimentos','leituras'].forEach(k=>{if(!Array.isArray(d[k]))d[k]=[];});
   d.viaturas.forEach(v=>{if(v.status==='Em operação')v.status='Operacional';if(!v.tipo)v.tipo='Viatura Operacional';if(typeof v.latitude==='undefined')v.latitude=null;if(typeof v.longitude==='undefined')v.longitude=null;if(typeof v.endereco==='undefined')v.endereco='';if(typeof v.enderecoFormatado==='undefined')v.enderecoFormatado='';});
   d.ordensServico.forEach(o=>{if(!o.tipo)o.tipo='Corretiva';if(!o.status)o.status='Concluída';if(o.status==='Finalizada')o.status='Concluída';if(!Array.isArray(o.pecas))o.pecas=[];if(!o.quilometragem)o.quilometragem=0;});
   d.version=DBV;return d;
@@ -604,14 +647,15 @@ const S={
   save(c,v){const d=this.get();if(!v.id){v.id=this.gid(d[c]);d[c].push(v);}else{const i=d[c].findIndex(x=>x.id===v.id);if(i>=0)d[c][i]={...d[c][i],...v};}this.write(d);return v;},
   del(c,id){const d=this.get();d[c]=d[c].filter(x=>x.id!==id);this.write(d);},
   viats(){return this.get().viaturas;},viat(id){return this.viats().find(v=>v.id===id);},savV(v){return this.save('viaturas',v);},
-  delV(id){const d=this.get();d.viaturas=d.viaturas.filter(v=>v.id!==id);d.ordensServico=d.ordensServico.filter(o=>o.viaturaId!==id);d.agendamentos=d.agendamentos.filter(a=>a.viaturaId!==id);d.documentos=d.documentos.filter(x=>x.viaturaId!==id);d.abastecimentos=d.abastecimentos.filter(x=>x.viaturaId!==id);this.write(d);},
+  delV(id){const d=this.get();d.viaturas=d.viaturas.filter(v=>v.id!==id);d.ordensServico=d.ordensServico.filter(o=>o.viaturaId!==id);d.agendamentos=d.agendamentos.filter(a=>a.viaturaId!==id);d.documentos=d.documentos.filter(x=>x.viaturaId!==id);d.abastecimentos=d.abastecimentos.filter(x=>x.viaturaId!==id);d.leituras=d.leituras.filter(x=>x.viaturaId!==id);this.write(d);},
   ords(){return this.get().ordensServico;},ord(id){return this.ords().find(o=>o.id===id);},
   savO(o){const d=this.get();if(!o.id){o.id=this.gid(d.ordensServico);o.numero='OS-'+String(o.id).padStart(3,'0');d.ordensServico.push(o);}else{const i=d.ordensServico.findIndex(x=>x.id===o.id);if(i>=0)d.ordensServico[i]={...d.ordensServico[i],...o};}this.write(d);return o;},
   delO(id){this.del('ordensServico',id);},
   mots(){return this.get().motoristas;},mot(id){return this.mots().find(m=>m.id===id);},savM(m){return this.save('motoristas',m);},delM(id){this.del('motoristas',id);},
   ags(){return this.get().agendamentos;},ag(id){return this.ags().find(a=>a.id===id);},savA(a){return this.save('agendamentos',a);},delA(id){this.del('agendamentos',id);},
   docs(){return this.get().documentos;},doc(id){return this.docs().find(d=>d.id===id);},savD(d){return this.save('documentos',d);},delD(id){this.del('documentos',id);},
-  abs(){return this.get().abastecimentos;},ab(id){return this.abs().find(a=>a.id===id);},savAb(a){return this.save('abastecimentos',a);},delAb(id){this.del('abastecimentos',id);}
+  abs(){return this.get().abastecimentos;},ab(id){return this.abs().find(a=>a.id===id);},savAb(a){return this.save('abastecimentos',a);},delAb(id){this.del('abastecimentos',id);},
+  leits(){return this.get().leituras;},leit(id){return this.leits().find(l=>l.id===id);},savL(l){return this.save('leituras',l);},delL(id){this.del('leituras',id);}
 };
 function esc(s){if(s==null)return'';return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 function moeda(v){return'R$ '+(Number(v)||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
@@ -714,13 +758,48 @@ function preventivasNoPrazo(){
   if(!prev.length)return null;
   let noPrazo=0;
   prev.forEach(o=>{
-    const v=S.viat(vid=o.viaturaId);
+    const v=S.viat(o.viaturaId);
     if(!v){noPrazo++;return;}
     if(v.proximaManutencaoData&&o.data<=v.proximaManutencaoData)noPrazo++;
     else if(v.proximaManutencaoKm&&Number(o.quilometragem||0)<=Number(v.proximaManutencaoKm))noPrazo++;
     else noPrazo++;
   });
   return{pct:(noPrazo/prev.length)*100,noPrazo,total:prev.length};
+}
+function leiturasViatura(vid){
+  return S.leits().filter(l=>l.viaturaId===vid).sort((a,b)=>new Date(a.data)-new Date(b.data));
+}
+function ultimaLeitura(vid){
+  const arr=leiturasViatura(vid);
+  return arr.length?arr[arr.length-1]:null;
+}
+function kmDesdeUltimaManutencao(vid){
+  const ords=S.ords().filter(o=>o.viaturaId===vid&&o.status==='Concluída').sort((a,b)=>new Date(b.data)-new Date(a.data));
+  const ult=ords[0];if(!ult)return null;
+  const v=S.viat(vid);if(!v)return null;
+  const kmUlt=Number(ult.quilometragem||0);
+  if(!kmUlt)return null;
+  return Number(v.quilometragem||0)-kmUlt;
+}
+function kmRestanteProximaManutencao(vid){
+  const v=S.viat(vid);if(!v||!v.proximaManutencaoKm)return null;
+  return Number(v.proximaManutencaoKm)-Number(v.quilometragem||0);
+}
+function kmRodadosPeriodo(vid,ini,fim){
+  let arr=S.leits().filter(l=>l.viaturaId===vid).sort((a,b)=>new Date(a.data)-new Date(b.data));
+  if(ini)arr=arr.filter(l=>l.data>=ini);
+  if(fim)arr=arr.filter(l=>l.data<=fim);
+  if(arr.length<2)return 0;
+  return Number(arr[arr.length-1].quilometragem)-Number(arr[0].quilometragem);
+}
+function mediaKmDia(vid,dias=30){
+  const limite=new Date();limite.setDate(limite.getDate()-dias);
+  const limISO=limite.toISOString().split('T')[0];
+  const arr=S.leits().filter(l=>l.viaturaId===vid&&l.data>=limISO).sort((a,b)=>new Date(a.data)-new Date(b.data));
+  if(arr.length<2)return null;
+  const km=Number(arr[arr.length-1].quilometragem)-Number(arr[0].quilometragem);
+  const dias2=Math.max(1,Math.round((new Date(arr[arr.length-1].data)-new Date(arr[0].data))/86400000));
+  return km/dias2;
 }
 function go(p){
   document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));
@@ -732,6 +811,7 @@ function go(p){
   if(p==='motoristas')renderMot();
   if(p==='agendamento')renderAg();
   if(p==='abastecimento')renderAb();
+  if(p==='quilometragem')renderKm();
   if(p==='documentos')renderDoc();
   if(p==='ordens')renderOrd();
   if(p==='historico')renderHist();
@@ -806,10 +886,11 @@ function delV(id){
   const a=S.ags().filter(x=>x.viaturaId===id);
   const d=S.docs().filter(x=>x.viaturaId===id);
   const ab=S.abs().filter(x=>x.viaturaId===id);
-  let extra='';if(o.length||a.length||d.length||ab.length)extra='\n\nTambém remove '+o.length+' OS, '+a.length+' agend., '+d.length+' doc., '+ab.length+' abastec.';
+  const lt=S.leits().filter(x=>x.viaturaId===id);
+  let extra='';if(o.length||a.length||d.length||ab.length||lt.length)extra='\n\nTambém remove: '+o.length+' OS, '+a.length+' agend., '+d.length+' doc., '+ab.length+' abastec., '+lt.length+' leitura(s).';
   confirmar('Excluir '+v.numero+' ('+v.placa+')?'+extra,()=>{
     S.delV(id);toast('Viatura excluída!');
-    renderVit();renderDash();renderOrd();renderHist();renderAg();renderDoc();renderAb();atualizaPrev();
+    renderVit();renderDash();renderOrd();renderHist();renderAg();renderDoc();renderAb();renderKm();atualizaPrev();
   });
 }
 function renderVit(){
@@ -1103,6 +1184,113 @@ function renderAbCharts(){
   const vs=S.viats().map(v=>({n:v.numero,c:consumoViatura(v.id)})).filter(x=>x.c!=null);
   drawC('chAbConsumo','bar',{labels:vs.map(v=>v.n),datasets:[{label:'km/l',data:vs.map(v=>Number(v.c.toFixed(2))),backgroundColor:'#2ECC71'}]});
 }
+function modalLeitura(id){
+  const f=document.querySelector('#mLeitura form');f.reset();
+  document.getElementById('leId').value='';
+  document.getElementById('mLeituraTitle').textContent='Nova Leitura de Odômetro';
+  document.getElementById('leAviso').innerHTML='';
+  const vs=S.viats();
+  if(!vs.length){toast('Cadastre viatura primeiro','warning');return;}
+  document.getElementById('leVit').innerHTML='<option value="">Selecione</option>'+vs.map(v=>'<option value="'+v.id+'">'+esc(v.numero)+' - '+esc(v.placa)+'</option>').join('');
+  const ms=S.mots().filter(m=>m.status==='Ativo');
+  document.getElementById('leMot').innerHTML='<option value="">— Não informado —</option>'+ms.map(m=>'<option value="'+m.id+'">'+esc(m.nome)+'</option>').join('');
+  document.getElementById('leData').value=hoje();
+  if(id){
+    const l=S.leit(id);if(!l)return;
+    document.getElementById('mLeituraTitle').textContent='Editar Leitura';
+    document.getElementById('leId').value=l.id;
+    document.getElementById('leVit').value=l.viaturaId;
+    document.getElementById('leData').value=l.data||hoje();
+    document.getElementById('leKm').value=l.quilometragem||0;
+    if(l.motoristaId)document.getElementById('leMot').value=l.motoristaId;
+    document.getElementById('leObs').value=l.observacoes||'';
+  }
+  openM('mLeitura');
+}
+function salvarLeitura(e){
+  e.preventDefault();
+  const form=e.target;
+  const id=form.querySelector('#leId').value;
+  const vRaw=String(form.querySelector('#leVit').value||'').trim();
+  if(!vRaw){toast('Selecione uma viatura','error');return;}
+  const vv=S.viats().find(x=>String(x.id)===vRaw);
+  if(!vv){toast('Viatura não encontrada','error');return;}
+  const km=parseInt(form.querySelector('#leKm').value)||0;
+  const data=form.querySelector('#leData').value;
+  if(km<=0){toast('Quilometragem deve ser maior que zero','error');return;}
+  if(!data){toast('Informe a data','error');return;}
+  const ult=ultimaLeitura(vv.id);
+  if(ult&&km<Number(ult.quilometragem)){
+    const aviso=document.getElementById('leAviso');
+    if(aviso)aviso.innerHTML='<div class="alert danger">Atenção: KM informada é menor que a última leitura ('+num(ult.quilometragem)+' km em '+dt(ult.data)+').</div>';
+    if(!confirm('A quilometragem informada ('+num(km)+') é MENOR que a última leitura ('+num(ult.quilometragem)+'). Confirma mesmo assim?'))return;
+  }
+  const motId=form.querySelector('#leMot').value;
+  const motorista=motId?S.mot(Number(motId)):null;
+  const l={id:id?Number(id):undefined,viaturaId:vv.id,viaturaNumero:vv.numero||'',viaturaPlaca:vv.placa||'',data,quilometragem:km,motoristaId:motId?Number(motId):null,motoristaNome:motorista?.nome||'',observacoes:form.querySelector('#leObs').value.trim()};
+  if(!l.id)delete l.id;
+  S.savL(l);
+  if(km>(vv.quilometragem||0))S.savV({...vv,quilometragem:km});
+  closeM('mLeitura');
+  toast(id?'Leitura atualizada!':'Leitura registrada!');
+  renderKm();renderVit();renderDash();
+}
+function delLe(id){
+  const l=S.leit(id);if(!l)return;
+  confirmar('Excluir leitura de '+l.viaturaNumero+' em '+dt(l.data)+'?',()=>{
+    S.delL(id);toast('Leitura excluída!');
+    renderKm();renderDash();
+  });
+}
+function renderKm(){
+  const leits=S.leits();
+  const e1=document.getElementById('kmTotalLeituras');if(e1)e1.textContent=leits.length;
+  const limite30=new Date();limite30.setDate(limite30.getDate()-30);
+  const limISO=limite30.toISOString().split('T')[0];
+  let km30=0;
+  S.viats().forEach(v=>{km30+=kmRodadosPeriodo(v.id,limISO,null);});
+  const e2=document.getElementById('kmRodado30');if(e2)e2.textContent=num(km30)+' km';
+  const alertas=S.viats().filter(v=>{
+    const r=kmRestanteProximaManutencao(v.id);
+    return r!=null&&r<=1000;
+  });
+  const e3=document.getElementById('kmAlertas');if(e3)e3.textContent=alertas.length;
+  const medias=S.viats().map(v=>mediaKmDia(v.id,30)).filter(x=>x!=null);
+  const mediaFrota=medias.length?medias.reduce((s,x)=>s+x,0)/medias.length*30:null;
+  const e4=document.getElementById('kmMediaFrota');if(e4)e4.textContent=mediaFrota?num(mediaFrota)+' km':'—';
+  const sel=document.getElementById('kmVit');
+  if(sel&&sel.options.length<=1)sel.innerHTML='<option value="">Todas as Viaturas</option>'+S.viats().map(v=>'<option value="'+v.id+'">'+esc(v.numero)+' - '+esc(v.placa)+'</option>').join('');
+  const vf=sel?.value||'';
+  const di=document.getElementById('kmIni')?.value;
+  const df=document.getElementById('kmFim')?.value;
+  const resumo=document.getElementById('kmResumoViatura');
+  if(vf){
+    const v=S.viat(Number(vf));
+    if(v){
+      const kmRod=kmRodadosPeriodo(v.id,di||null,df||null);
+      const diasPeriodo=di&&df?Math.max(1,Math.round((new Date(df)-new Date(di))/86400000)):30;
+      const mediaDia=diasPeriodo>0?kmRod/diasPeriodo:0;
+      const mediaMes=mediaDia*30;
+      const kmDesde=kmDesdeUltimaManutencao(v.id);
+      const kmRest=kmRestanteProximaManutencao(v.id);
+      resumo.innerHTML='<div class="card"><h3 style="margin-bottom:12px">Resumo: '+esc(v.numero)+' — '+esc(v.placa)+'</h3><div class="stats" style="margin-bottom:0"><div class="stat"><div class="stat-val">'+num(v.quilometragem||0)+' km</div><div class="stat-lb">KM Atual</div></div><div class="stat ok"><div class="stat-val">'+num(kmRod)+' km</div><div class="stat-lb">KM Rodado no Período</div></div><div class="stat"><div class="stat-val">'+num(mediaDia.toFixed(1))+' km/dia</div><div class="stat-lb">Média por Dia</div></div><div class="stat roxo"><div class="stat-val">'+num(mediaMes.toFixed(0))+' km</div><div class="stat-lb">Projeção Mensal</div></div><div class="stat"><div class="stat-val">'+(kmDesde!=null?num(kmDesde)+' km':'—')+'</div><div class="stat-lb">KM desde Última Manut.</div></div><div class="stat '+(kmRest!=null?(kmRest<=1000?'err':(kmRest<=5000?'warn':'ok')):'')+'"><div class="stat-val">'+(kmRest!=null?num(kmRest)+' km':'—')+'</div><div class="stat-lb">KM Restante Próxima Manut.</div></div></div></div>';
+    }
+  } else {
+    resumo.innerHTML='';
+  }
+  const tb=document.getElementById('kmTable');if(!tb)return;
+  let l=leits;
+  if(vf)l=l.filter(x=>String(x.viaturaId)===vf);
+  if(di)l=l.filter(x=>x.data>=di);
+  if(df)l=l.filter(x=>x.data<=df);
+  l=l.sort((a,b)=>new Date(b.data)-new Date(a.data));
+  if(!l.length){tb.innerHTML='<tr><td colspan="7"><div class="empty"><i class="fas fa-tachometer-alt"></i>Nenhuma leitura registrada</div></td></tr>';return;}
+  tb.innerHTML=l.map(x=>{
+    const anterior=leiturasViatura(x.viaturaId).filter(y=>new Date(y.data)<new Date(x.data)).slice(-1)[0];
+    const dif=anterior?Number(x.quilometragem)-Number(anterior.quilometragem):null;
+    return'<tr><td>'+dt(x.data)+'</td><td><strong>'+esc(x.viaturaNumero)+'</strong><br><small style="color:#666">'+esc(x.viaturaPlaca)+'</small></td><td>'+num(x.quilometragem)+' km</td><td>'+(dif!=null?(dif>=0?'+':'')+num(dif)+' km':'—')+'</td><td>'+esc(x.motoristaNome||'-')+'</td><td>'+esc(x.observacoes||'-')+'</td><td><button class="sec sm" onclick="modalLeitura('+x.id+')">Editar</button> <button class="danger sm" onclick="delLe('+x.id+')">Excluir</button></td></tr>';
+  }).join('');
+}
 function stDoc(d){if(!d.vencimento)return{label:'Sem info',cor:'info'};const dias=diasAte(d.vencimento);if(dias<0)return{label:'Vencido há '+Math.abs(dias)+'d',cor:'danger'};if(dias<=30)return{label:'Vence em '+dias+'d',cor:'warning'};return{label:'Regular',cor:'success'};}
 function modalDocumento(id){
   const f=document.querySelector('#mDocumento form');f.reset();
@@ -1229,6 +1417,14 @@ function concluirO(id){
     renderOrd();renderVit();renderHist();renderDash();renderInd();atualizaPrev();
   });
 }
+function imprimirOS(id){
+  const o=S.ord(id);if(!o)return;
+  const v=S.viat(o.viaturaId);
+  const html='<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>OS '+esc(o.numero)+'</title><style>body{font-family:Inter,system-ui,sans-serif;padding:28px;color:#2C3E50;max-width:900px;margin:0 auto}h1{font-size:22px;margin:0 0 4px}h2{font-size:13px;color:#666;margin:0 0 24px;font-weight:400}.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid #1B4F72}.num{font-size:20px;font-weight:700;color:#1B4F72}.badge{display:inline-block;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;background:#e3f2fd;color:#1976d2;margin-left:8px}.sect{margin-bottom:20px}.sect h3{font-size:13px;font-weight:700;color:#1B4F72;text-transform:uppercase;letter-spacing:.5px;margin:0 0 10px;padding-bottom:6px;border-bottom:1px solid #e0e0e0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed #eee;font-size:14px}.row label{color:#666;font-weight:500}.row span{font-weight:600}.obs{background:#f9f9f9;padding:12px;border-radius:6px;font-size:14px;line-height:1.5;white-space:pre-wrap}.total{margin-top:16px;padding:14px;background:#1B4F72;color:#fff;border-radius:8px;display:flex;justify-content:space-between;align-items:center;font-size:16px}.total .val{font-size:22px;font-weight:700}.footer{margin-top:40px;padding-top:20px;border-top:1px solid #ddd;text-align:center;font-size:11px;color:#999}.btn-print{display:block;margin:24px auto 0;padding:12px 32px;background:#1B4F72;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer}@media print{.btn-print{display:none}body{padding:12px}}</style></head><body><div class="header"><div><h1>Frota PM - Blumenau</h1><h2>Ordem de Serviço</h2></div><div style="text-align:right"><div class="num">'+esc(o.numero)+'</div><span class="badge">'+esc(o.status)+'</span></div></div><div class="sect"><h3>Viatura</h3><div class="grid"><div class="row"><label>Número</label><span>'+esc(v?.numero||'-')+'</span></div><div class="row"><label>Placa</label><span>'+esc(v?.placa||o.placa||'-')+'</span></div><div class="row"><label>Modelo</label><span>'+esc(v?.modelo||'-')+'</span></div><div class="row"><label>Unidade</label><span>'+esc(v?.unidade||'-')+'</span></div></div></div><div class="sect"><h3>Ordem</h3><div class="grid"><div class="row"><label>Tipo</label><span>'+esc(o.tipo)+'</span></div><div class="row"><label>Data</label><span>'+dt(o.data)+'</span></div><div class="row"><label>Responsável</label><span>'+esc(o.responsavel||'-')+'</span></div><div class="row"><label>Quilometragem</label><span>'+num(o.quilometragem||0)+' km</span></div></div></div><div class="sect"><h3>Descrição / Problema</h3><div class="obs">'+esc(o.descricao||'-')+'</div></div>'+(o.pecas&&o.pecas.length?'<div class="sect"><h3>Peças Utilizadas</h3><div class="obs">'+o.pecas.map(esc).join(', ')+'</div></div>':'')+(o.observacoes?'<div class="sect"><h3>Observações</h3><div class="obs">'+esc(o.observacoes)+'</div></div>':'')+'<div class="sect"><h3>Resumo</h3><div class="row"><label>Custo Total</label><span>'+moeda(o.custo)+'</span></div><div class="row"><label>Tempo de Parada</label><span>'+(Number(o.tempoParada)||0)+' horas</span></div></div><div class="total"><span>Valor Total</span><span class="val">'+moeda(o.custo)+'</span></div><div class="footer">Documento gerado em '+new Date().toLocaleString('pt-BR')+' — Frota PM Blumenau</div><button class="btn-print" onclick="window.print()">Imprimir / Salvar como PDF</button></body></html>';
+  const w=window.open('','_blank');
+  if(!w){toast('Habilite pop-ups para imprimir','warning');return;}
+  w.document.write(html);w.document.close();
+}
 function renderOrd(){
   const tb=document.getElementById('oTable');if(!tb)return;
   const f=(document.getElementById('oFiltro')?.value||'').toLowerCase();
@@ -1245,6 +1441,7 @@ function renderOrd(){
     const v=S.viat(o.viaturaId);
     const ac=[];
     if(o.status!=='Concluída'&&o.status!=='Cancelada')ac.push('<button class="ok sm" onclick="concluirO('+o.id+')" title="Concluir">OK</button>');
+    ac.push('<button class="roxo sm" onclick="imprimirOS('+o.id+')" title="Imprimir">🖨</button>');
     ac.push('<button class="sec sm" onclick="modalOrdem('+o.id+')">Editar</button>');
     ac.push('<button class="danger sm" onclick="delO('+o.id+')">Excluir</button>');
     return'<tr><td><strong>'+esc(o.numero)+'</strong></td><td>'+esc(v?.numero||'-')+'</td><td>'+esc(v?.placa||o.placa||'-')+'</td><td>'+statusBadge(o.tipo)+'</td><td>'+dt(o.data)+'</td><td>'+esc(o.responsavel)+'</td><td>'+moeda(o.custo)+'</td><td>'+statusBadge(o.status)+'</td><td><div style="display:flex;gap:3px;flex-wrap:wrap">'+ac.join('')+'</div></td></tr>';
@@ -1277,7 +1474,7 @@ function renderHist(){
   if(!l.length){cont.innerHTML='<div class="empty"><i class="fas fa-history"></i>Nenhuma manutenção</div>';return;}
   cont.innerHTML=l.map(o=>{
     const v=S.viat(o.viaturaId);
-    return'<div class="titem"><div class="card" style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px"><div><strong>'+esc(o.numero)+' — '+esc(v?.numero||'removida')+'</strong><div style="font-size:12px;color:#666;margin-top:3px">'+esc(v?.placa||'-')+' • '+esc(v?.modelo||'-')+' • '+dt(o.data)+'</div></div><div style="text-align:right"><div style="font-size:16px;font-weight:700;color:var(--azul2)">'+moeda(o.custo)+'</div><small style="color:#999">'+(Number(o.tempoParada)||0)+'h</small></div></div><div style="margin-top:10px;font-size:13px"><div><strong>Serviço:</strong> '+esc(o.descricao)+'</div>'+(o.pecas&&o.pecas.length?'<div style="margin-top:5px"><strong>Peças:</strong> '+o.pecas.map(esc).join(', ')+'</div>':'')+'<div style="margin-top:5px;font-size:11px;color:#666"><strong>Resp.:</strong> '+esc(o.responsavel)+' · <strong>Tipo:</strong> '+esc(o.tipo)+' · <strong>KM:</strong> '+num(o.quilometragem)+'</div></div></div></div>';
+    return'<div class="titem"><div class="card" style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px"><div><strong>'+esc(o.numero)+' — '+esc(v?.numero||'removida')+'</strong><div style="font-size:12px;color:#666;margin-top:3px">'+esc(v?.placa||'-')+' • '+esc(v?.modelo||'-')+' • '+dt(o.data)+'</div></div><div style="text-align:right"><div style="font-size:16px;font-weight:700;color:var(--azul2)">'+moeda(o.custo)+'</div><small style="color:#999">'+(Number(o.tempoParada)||0)+'h</small></div></div><div style="margin-top:10px;font-size:13px"><div><strong>Serviço:</strong> '+esc(o.descricao)+'</div>'+(o.pecas&&o.pecas.length?'<div style="margin-top:5px"><strong>Peças:</strong> '+o.pecas.map(esc).join(', ')+'</div>':'')+'<div style="margin-top:5px;font-size:11px;color:#666"><strong>Resp.:</strong> '+esc(o.responsavel)+' · <strong>Tipo:</strong> '+esc(o.tipo)+' · <strong>KM:</strong> '+num(o.quilometragem)+'</div><div style="margin-top:8px"><button class="roxo sm" onclick="imprimirOS('+o.id+')">Imprimir OS</button></div></div></div></div>';
   }).join('');
 }
 let charts={};
@@ -1411,6 +1608,15 @@ function dadosRelatorio(tipo){
     titulo:'Relatório de Abastecimentos',
     cols:['Data','Viatura','Placa','Combustível','Litros','R$/L','Total','KM','Posto','Motorista'],
     rows:db.abastecimentos.map(a=>[dt(a.data),a.viaturaNumero||'',a.viaturaPlaca||'',a.combustivel||'',num2(a.litros||0),moeda(a.valorLitro||0),moeda(a.valorTotal||0),num(a.quilometragem||0),a.posto||'',a.motoristaNome||''])
+  };
+  if(tipo==='quilometragem')return{
+    titulo:'Relatório de Quilometragem',
+    cols:['Data','Viatura','Placa','KM','Diferença','Motorista','Observação'],
+    rows:db.leituras.sort((a,b)=>new Date(b.data)-new Date(a.data)).map(l=>{
+      const anterior=db.leituras.filter(x=>x.viaturaId===l.viaturaId).sort((a,b)=>new Date(a.data)-new Date(b.data)).filter(x=>new Date(x.data)<new Date(l.data)).slice(-1)[0];
+      const dif=anterior?Number(l.quilometragem)-Number(anterior.quilometragem):null;
+      return[dt(l.data),l.viaturaNumero||'',l.viaturaPlaca||'',num(l.quilometragem||0),dif!=null?(dif>=0?'+':'')+num(dif)+' km':'—',l.motoristaNome||'',l.observacoes||''];
+    })
   };
   if(tipo==='motoristas')return{
     titulo:'Relatório de Motoristas',
@@ -1603,19 +1809,34 @@ function iaMsg(au,tx){const c=document.getElementById('iaChat');if(!c)return;con
 function toggleIA(){
   const m=document.getElementById('iaModal');
   if(m.classList.contains('on'))closeM('iaModal');
-  else{openM('iaModal');const c=document.getElementById('iaChat');if(!c.children.length)iaMsg('ia','Olá! Sou a Frota IA. Posso responder sobre viaturas, manutenções, motoristas, agendamentos, abastecimento, documentos, custos, relatórios e riscos. Use uma sugestão ou digite.');setTimeout(()=>document.getElementById('iaInput')?.focus(),200);}
+  else{openM('iaModal');const c=document.getElementById('iaChat');if(!c.children.length)iaMsg('ia','Olá! Sou a Frota IA. Posso responder sobre viaturas, manutenções, motoristas, agendamentos, abastecimento, quilometragem, documentos, custos, relatórios e riscos. Use uma sugestão ou digite.');setTimeout(()=>document.getElementById('iaInput')?.focus(),200);}
 }
 function pergRap(t){const i=document.getElementById('iaInput');if(!i)return;i.value=t;enviarPerg({preventDefault:()=>{}});}
 function enviarPerg(e){if(e&&e.preventDefault)e.preventDefault();const i=document.getElementById('iaInput');if(!i)return;const p=i.value.trim();if(!p)return;iaMsg('user',p);i.value='';setTimeout(()=>iaMsg('ia',responder(p)),200);}
 function responder(p){
   const q=(p||'').toLowerCase().trim();
   const db=S.get();
-  const vs=db.viaturas||[],os=db.ordensServico||[],ms=db.motoristas||[],as=db.agendamentos||[],ds=db.documentos||[],abs=db.abastecimentos||[];
+  const vs=db.viaturas||[],os=db.ordensServico||[],ms=db.motoristas||[],as=db.agendamentos||[],ds=db.documentos||[],abs=db.abastecimentos||[],lts=db.leituras||[];
   if(!vs.length)return'Sem dados suficientes. Cadastre viaturas e ordens primeiro.';
   const an=viatsRisco();
   if(/precisam?.*manuten|manuten.*esta semana/i.test(q)){const e=an.filter(x=>x.sc>=25);if(!e.length)return'Nenhuma precisa de manutenção.';return e.length+' veículo(s) precisam de atenção:\n\n'+e.slice(0,8).map(x=>'• '+x.viatura.numero+' — '+x.n+' ('+x.sc+'/100)\n   '+(x.mt[0]||'')).join('\n\n');}
   if(/qual.*retirar|qual.*priorizar|prioridade/i.test(q)){const t=an[0];if(!t||t.sc<25)return'Nada a priorizar.';return t.viatura.numero+' deve ser priorizada.\n\nRisco: '+t.sc+'/100 ('+t.n+')\n\nMotivos:\n'+t.mt.map(m=>'• '+m).join('\n')+'\n\nRecomendação: '+t.recom+'.';}
   if(/risco alto|risco cr[íi]tico/i.test(q)){const e=an.filter(x=>x.n==='Alto'||x.n==='Crítico');if(!e.length)return'Nenhuma em risco alto/crítico.';return e.length+' viatura(s):\n\n'+e.map(x=>'• '+x.viatura.numero+' — '+x.n+' ('+x.sc+'/100)').join('\n');}
+  if(/quil[oô]metr|od[oô]metro|km por dia|km\/dia|rodad/i.test(q)){
+    if(!lts.length)return'Nenhuma leitura de odômetro registrada.';
+    if(/m[ée]dia.*frota|m[ée]dia.*dia|km.*dia/i.test(q)){
+      const medias=vs.map(v=>mediaKmDia(v.id,30)).filter(x=>x!=null);
+      if(!medias.length)return'Sem leituras suficientes (mínimo 2 por viatura nos últimos 30 dias).';
+      const media=medias.reduce((s,x)=>s+x,0)/medias.length;
+      return'Média de km/dia da frota: '+media.toFixed(1)+' km\nProjeção mensal: '+num((media*30).toFixed(0))+' km';
+    }
+    if(/mais rodou|mais km|maior km/i.test(q)){
+      const c=vs.map(v=>({v,km:kmRodadosPeriodo(v.id,null,null)})).sort((a,b)=>b.km-a.km);
+      if(!c[0]||c[0].km<=0)return'Sem dados de km rodado.';
+      return c[0].v.numero+' é a viatura que mais rodou: '+num(c[0].km)+' km';
+    }
+    return'Total de leituras: '+lts.length+'\nViaturas com leitura: '+new Set(lts.map(l=>l.viaturaId)).size;
+  }
   if(/combust[íi]vel|abastec/i.test(q)){
     if(!abs.length)return'Nenhum abastecimento registrado.';
     if(/gast|maior.*gast|quanto.*gast/i.test(q)){const c=vs.map(v=>({v,tt:abs.filter(a=>a.viaturaId===v.id).reduce((s,a)=>s+Number(a.valorTotal||0),0)})).sort((a,b)=>b.tt-a.tt);if(!c[0]||c[0].tt===0)return'Nenhum gasto registrado.';return c[0].v.numero+' tem maior gasto com combustível: '+moeda(c[0].tt)+'.\n\nTotal da frota: '+moeda(totalGastoAb());}
@@ -1638,9 +1859,10 @@ function responder(p){
   if(/quantas.*manuten|quantas.*os/i.test(q)){const conc=os.filter(o=>o.status==='Concluída').length;const ab=os.filter(o=>['Agendada','Em andamento'].includes(o.status)).length;return'Total de ordens: '+os.length+'\n• Concluídas: '+conc+'\n• Abertas: '+ab;}
   if(/preventiv.*prazo/i.test(q)){const pp=preventivasNoPrazo();if(!pp)return'Nenhuma preventiva concluída.';return'Preventivas no prazo: '+pp.pct.toFixed(0)+'% ('+pp.noPrazo+' de '+pp.total+')';}
   if(/custo total|gasto total/i.test(q)){const k=kpis(db);return'Manutenção: '+moeda(k.custo)+'\nCombustível: '+moeda(totalGastoAb())+'\nTotal: '+moeda(k.custo+totalGastoAb());}
-  if(/relat[óo]rio|exportar|csv/i.test(q))return'Vá em Relatórios no menu lateral. Lá você exporta CSV ou imprime/PDF de: Viaturas, Ordens, Histórico, Abastecimentos, Motoristas, Agendamentos, Documentação, Custos e Disponibilidade.';
+  if(/relat[óo]rio|exportar|csv/i.test(q))return'Vá em Relatórios no menu lateral. Lá você exporta CSV ou imprime/PDF de: Viaturas, Ordens, Histórico, Abastecimentos, Quilometragem, Motoristas, Agendamentos, Documentação, Custos e Disponibilidade.';
+  if(/imprimir.*os|imprimir ordem|pdf.*os/i.test(q))return'Em Ordens de Serviço, clique no ícone 🖨 na linha da OS desejada. Abre a janela de impressão com o layout para salvar como PDF.';
   if(/cr[íi]tic|top.*risco/i.test(q)){const top=an.slice(0,5);return'Mais críticas:\n\n'+top.map((x,i)=>(i+1)+'. '+x.viatura.numero+' — '+x.n+' ('+x.sc+'/100)').join('\n');}
-  if(/ajuda|help|pode|comandos/i.test(q))return'Posso responder:\n\n• Quais veículos precisam de manutenção esta semana?\n• Qual veículo devo priorizar?\n• Qual veículo gasta mais combustível?\n• Qual o consumo médio da frota?\n• Qual o custo por km da frota?\n• Quais viaturas estão agendadas hoje?\n• Quais documentos estão próximos do vencimento?\n• Quais CNHs estão próximas do vencimento?\n• Qual o % de preventivas no prazo?\n• Como está a disponibilidade da frota?\n• Como exporto relatórios?';
+  if(/ajuda|help|pode|comandos/i.test(q))return'Posso responder:\n\n• Quais veículos precisam de manutenção esta semana?\n• Qual veículo devo priorizar?\n• Qual veículo gasta mais combustível?\n• Qual o consumo médio da frota?\n• Qual a média de km/dia da frota?\n• Qual veículo mais rodou?\n• Qual o custo por km da frota?\n• Quais documentos estão próximos do vencimento?\n• Quais CNHs estão próximas do vencimento?\n• Qual o % de preventivas no prazo?\n• Como está a disponibilidade da frota?\n• Como imprimir uma OS ou um relatório?';
   return'Não entendi. Digite "ajuda" para ver o que posso responder.';
 }
 document.addEventListener('DOMContentLoaded',()=>{
@@ -1649,6 +1871,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   ['mFiltro','mSt'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('input',renderMot);});
   ['agFiltro','agSt'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('input',renderAg);});
   ['abFiltro','abSt','abComb','abIni','abFim'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('input',renderAb);});
+  ['kmVit','kmIni','kmFim'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('input',renderKm);});
   ['dFiltro','dSt'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('input',renderDoc);});
   ['oFiltro','oSt','oTp'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('input',renderOrd);});
   ['hFiltro','hVit','hTp','hResp','hIni','hFim'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('input',renderHist);});
@@ -1665,6 +1888,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(ativo==='motoristas')renderMot();
     if(ativo==='agendamento')renderAg();
     if(ativo==='abastecimento')renderAb();
+    if(ativo==='quilometragem')renderKm();
     if(ativo==='documentos')renderDoc();
     if(ativo==='ordens')renderOrd();
     if(ativo==='historico')renderHist();
@@ -1674,7 +1898,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(ativo==='rastreamento'){renderMapMarks();renderMapList();}
     atualizaPrev();
   });
-  try{renderDash();renderVit();renderMot();renderAg();renderAb();renderDoc();renderOrd();renderHist();renderInd();renderPrevDash();}catch(e){console.error('Render:',e);}
+  try{renderDash();renderVit();renderMot();renderAg();renderAb();renderKm();renderDoc();renderOrd();renderHist();renderInd();renderPrevDash();}catch(e){console.error('Render:',e);}
 });
 </script>
 </body>
