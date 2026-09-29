@@ -1100,41 +1100,53 @@ function renderAreaMotorista(el){
   </div>`;
 }
 function iniciarUtilizacao(){
-  const v=minhaViatura();if(!v){toast('Nenhuma viatura atribuída','error');return;}
+  const v=minhaViatura();
+  if(!v){toast('Nenhuma viatura atribuída','error');return;}
   if(utilizacaoAtiva()){toast('Você já tem uma utilização em andamento','warning');return;}
   if(v.status!=='Operacional'){toast('Viatura não está operacional','error');return;}
   const outraUtil=utilizacaoAtivaDaViatura(v.id);
   if(outraUtil){toast('⚠️ Esta viatura já está em utilização por '+(outraUtil.motoristaNome||'outro motorista'),'error');return;}
   const kmIni=Number(v.quilometragem||0);
   S.savU({motoristaId:MOTORISTA_LOGADO,motoristaNome:S.mot(MOTORISTA_LOGADO)?.nome||'',viaturaId:v.id,viaturaNumero:v.numero,viaturaPlaca:v.placa,inicio:agora(),kmInicial:kmIni,obsInicial:''});
-  const agHoje=S.ags().find(a=>a.viaturaId===v.id&&a.motoristaId===MOTORISTA_LOGADO&&a.data===hoje()&&(a.status==='Aprovado'||a.status==='Solicitado'));
-  if(agHoje){S.savA({...agHoje,status:'Em uso'});}
+  const meusAg=S.ags().filter(a=>a.viaturaId===v.id&&a.motoristaId===MOTORISTA_LOGADO&&(a.status==='Aprovado'||a.status==='Solicitado')).sort((a,b)=>new Date(a.data+'T'+a.saida)-new Date(b.data+'T'+b.saida));
+  const agHoje=meusAg[0]||null;
+  if(agHoje){
+    S.savA({...agHoje,status:'Em uso'});
+  }
   const nomeMot=S.mot(MOTORISTA_LOGADO)?.nome||'Motorista';
   const hh=new Date().toLocaleTimeString('pt-BR').slice(0,5);
   notificar('manutencao',null,'🚗 Utilização iniciada',nomeMot+' iniciou utilização da viatura '+v.numero+' às '+hh+'.','info');
   notificar('admin',null,'🚗 Utilização iniciada',nomeMot+' iniciou utilização da viatura '+v.numero+' às '+hh+'.','info');
   toast('Utilização iniciada às '+hh,'success');
-  renderizarMinhaArea();go('minhaArea');
+  renderizarMinhaArea();
+  go('minhaArea');
 }
 function finalizarUtilizacao(){
-  const u=utilizacaoAtiva();if(!u){toast('Nenhuma utilização em andamento','warning');return;}
+  const u=utilizacaoAtiva();
+  if(!u){toast('Nenhuma utilização em andamento','warning');return;}
   const v=S.viat(u.viaturaId);
   const kmInp=prompt('KM final do odômetro:',v?String(v.quilometragem||u.kmInicial):String(u.kmInicial));
   if(kmInp===null)return;
-  const kmFin=parseInt(kmInp);if(isNaN(kmFin)||kmFin<0){toast('KM inválida','error');return;}
+  const kmFin=parseInt(kmInp);
+  if(isNaN(kmFin)||kmFin<0){toast('KM inválida','error');return;}
   if(kmFin<u.kmInicial){toast('KM final não pode ser menor que a inicial ('+num(u.kmInicial)+' km)','error');return;}
   const obs=prompt('Observação (opcional):','')||'';
   const kmPerc=kmFin-u.kmInicial;
   S.savU({...u,fim:agora(),kmFinal:kmFin,obsFinal:obs,kmPercorrido:kmPerc});
-  if(v&&kmFin>(v.quilometragem||0)){S.savV({...v,quilometragem:kmFin});criarLeituraAuto(v.id,kmFin,hoje(),'Utilização',MOTORISTA_LOGADO,S.mot(MOTORISTA_LOGADO)?.nome||'','Finalizada utilização — '+num(kmPerc)+' km percorridos');}
-  const agAtivo=S.ags().find(a=>a.viaturaId===u.viaturaId&&a.motoristaId===MOTORISTA_LOGADO&&a.status==='Em uso');
-  if(agAtivo){S.savA({...agAtivo,status:'Finalizado'});}
+  if(v&&kmFin>(v.quilometragem||0)){
+    S.savV({...v,quilometragem:kmFin});
+    criarLeituraAuto(v.id,kmFin,hoje(),'Utilização',MOTORISTA_LOGADO,S.mot(MOTORISTA_LOGADO)?.nome||'','Finalizada utilização — '+num(kmPerc)+' km percorridos');
+  }
+  S.ags().filter(a=>a.viaturaId===u.viaturaId&&a.motoristaId===MOTORISTA_LOGADO&&a.status==='Em uso').forEach(a=>{
+    S.savA({...a,status:'Finalizado'});
+  });
   const nomeMot=S.mot(MOTORISTA_LOGADO)?.nome||'Motorista';
   const hh=new Date().toLocaleTimeString('pt-BR').slice(0,5);
   notificar('manutencao',null,'🏁 Utilização finalizada',nomeMot+' finalizou utilização da viatura '+u.viaturaNumero+' às '+hh+'. KM percorridos: '+num(kmPerc)+'.','success');
   notificar('admin',null,'🏁 Utilização finalizada',nomeMot+' finalizou utilização da viatura '+u.viaturaNumero+' às '+hh+'.','info');
   toast('Utilização finalizada. '+num(kmPerc)+' km percorridos.','success');
-  renderizarMinhaArea();go('minhaArea');
+  renderizarMinhaArea();
+  go('minhaArea');
 }
 function verHistoricoUtilizacoes(){
   const arr=minhasUtilizacoes().slice(0,20);
@@ -2121,21 +2133,24 @@ function renderAg(){
   const op=S.viats().filter(v=>v.status==='Operacional').length;
   const emUso=new Set(as.filter(a=>a.data===h&&(a.status==='Em uso'||a.status==='Aprovado')).map(a=>a.viaturaId)).size;
   document.getElementById('agLivre').textContent=Math.max(0,op-emUso);
-  const tb=document.getElementById('agTable');if(!tb)return;
+  const tb=document.getElementById('agTable');
+  if(!tb)return;
   const f=(document.getElementById('agFiltro')?.value||'').toLowerCase();
   const s=document.getElementById('agSt')?.value||'';
   const l=as.filter(a=>{if(s&&a.status!==s)return false;if(f){const t=(a.viaturaNumero+' '+a.motoristaNome+' '+a.destino).toLowerCase();if(!t.includes(f))return false;}return true;}).sort((a,b)=>new Date(b.data+'T'+b.saida)-new Date(a.data+'T'+a.saida));
   if(!l.length){tb.innerHTML='<tr><td colspan="8"><div class="empty"><i class="fas fa-calendar-alt"></i>Nenhum agendamento</div></td></tr>';return;}
   tb.innerHTML=l.map(a=>{
+    const utilAtiva=S.uts().find(x=>x.viaturaId===a.viaturaId&&!x.fim);
+    const stEfetivo=(utilAtiva&&a.status!=='Finalizado')?'Em uso':a.status;
+    const origem=a.origemSolicitacao==='motorista'?'<br><small style="color:var(--laranja);font-weight:600">📩 Solicitado pelo motorista</small>':'';
+    const emUsoHoje=(stEfetivo==='Em uso')?'<br><small style="color:var(--verde);font-weight:700">▶️ EM USO AGORA'+(utilAtiva?' — '+esc(utilAtiva.motoristaNome||''):'')+'</small>':'';
     const ac=[];
-    if(a.status==='Solicitado')ac.push('<button class="ok sm" onclick="mudStA('+a.id+',\'Aprovado\')">OK</button>');
-    if(a.status==='Aprovado')ac.push('<button class="sm" onclick="mudStA('+a.id+',\'Em uso\')">Iniciar</button>');
-    if(a.status==='Em uso')ac.push('<button class="ok sm" onclick="mudStA('+a.id+',\'Finalizado\')">Fim</button>');
+    if(stEfetivo==='Solicitado')ac.push('<button class="ok sm" onclick="mudStA('+a.id+',\'Aprovado\')">OK</button>');
+    if(stEfetivo==='Aprovado')ac.push('<button class="sm" onclick="mudStA('+a.id+',\'Em uso\')">Iniciar</button>');
+    if(stEfetivo==='Em uso')ac.push('<button class="ok sm" onclick="mudStA('+a.id+',\'Finalizado\')">Fim</button>');
     ac.push('<button class="sec sm" onclick="modalAgendamento('+a.id+')">Editar</button>');
     ac.push('<button class="danger sm" onclick="delA('+a.id+')">Excluir</button>');
-    const origem=a.origemSolicitacao==='motorista'?'<br><small style="color:var(--laranja);font-weight:600">📩 Solicitado pelo motorista</small>':'';
-    const emUsoHoje=(a.status==='Em uso')?'<br><small style="color:var(--verde);font-weight:700">▶️ EM USO AGORA</small>':'';
-    return'<tr><td><strong>'+esc(a.viaturaNumero)+'</strong><br><small style="color:#666">'+esc(a.viaturaPlaca)+'</small>'+origem+'</td><td>'+esc(a.motoristaNome)+emUsoHoje+'</td><td>'+dt(a.data)+'</td><td>'+esc(a.saida)+'</td><td>'+esc(a.retorno)+'</td><td>'+esc(a.destino)+'</td><td>'+statusBadge(a.status)+'</td><td><div style="display:flex;gap:3px;flex-wrap:wrap">'+ac.join('')+'</div></td></tr>';
+    return'<tr><td><strong>'+esc(a.viaturaNumero)+'</strong><br><small style="color:#666">'+esc(a.viaturaPlaca)+'</small>'+origem+'</td><td>'+esc(a.motoristaNome)+emUsoHoje+'</td><td>'+dt(a.data)+'</td><td>'+esc(a.saida)+'</td><td>'+esc(a.retorno)+'</td><td>'+esc(a.destino)+'</td><td>'+statusBadge(stEfetivo)+'</td><td><div style="display:flex;gap:3px;flex-wrap:wrap">'+ac.join('')+'</div></td></tr>';
   }).join('');
 }
 function preencherKmAbastecimento(){
